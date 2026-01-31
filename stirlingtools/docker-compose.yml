@@ -1,0 +1,42 @@
+version: "3.8"
+services:
+  stirling-pdf:
+    image: docker.stirlingpdf.com/stirlingtools/stirling-pdf:latest
+    env_file:
+      - .env
+    ports:
+      - '${STIRLING_PDF_PORT}:8080'
+    volumes:
+      - ./StirlingPDF/trainingData:/usr/share/tessdata # Required for extra OCR languages
+      - ./StirlingPDF/extraConfigs:/configs
+      - ./StirlingPDF/customFiles:/customFiles/
+      - ./StirlingPDF/logs:/logs/
+      - ./StirlingPDF/pipeline:/pipeline/
+    environment:
+      - DOCKER_ENABLE_SECURITY=${DOCKER_ENABLE_SECURITY:-true}
+      - SECURITY_ENABLELOGIN=${SECURITY_ENABLELOGIN:-true}
+      - SECURITY_INITIALLOGIN_USERNAME=${SECURITY_INITIALLOGIN_USERNAME:-admin}
+      - SECURITY_INITIALLOGIN_PASSWORD=${SECURITY_INITIALLOGIN_PASSWORD:-stirling123}
+      - SECURITY_LOGINATTEMPTCOUNT=${SECURITY_LOGINATTEMPTCOUNT:-5}
+      - SECURITY_LOGINRESETTIMEMINUTES=${SECURITY_LOGINRESETTIMEMINUTES:-120}
+      - SECURITY_LOGINMETHOD=${SECURITY_LOGINMETHOD:-all}
+      - SECURITY_CSRFDISABLED=${SECURITY_CSRFDISABLED:-false}
+      - LANGS=${LANGS:-en_GB}
+      - UI_APPNAME=${UI_APPNAME:-Stirling PDF}
+      - UI_HOMEDESCRIPTION=${UI_HOMEDESCRIPTION:-Your locally hosted one-stop-shop for all your PDF needs.}
+      - UI_APPNAVBARNAME=${UI_APPNAVBARNAME:-Stirling PDF}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 10s

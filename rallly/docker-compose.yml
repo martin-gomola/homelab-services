@@ -1,0 +1,70 @@
+version: "3.8"
+
+services:
+  rallly:
+    image: lukevella/rallly:latest
+    container_name: rallly
+    env_file:
+      - .env
+    ports:
+      - "${RALLLY_PORT}:3000"
+    volumes:
+      - /srv/docker/rallly/uploads:/app/uploads # For file uploads
+    environment:
+      DATABASE_URL: postgres://${RALLLY_DB_USER}:${RALLLY_DB_PASSWORD}@rallly_postgres/${RALLLY_DB_NAME}
+      NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL}
+      SECRET_PASSWORD: ${SECRET_PASSWORD}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_SECURE: ${SMTP_SECURE}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PWD: ${SMTP_PASSWORD}
+    depends_on:
+      rallly_postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 10s
+
+  rallly_postgres:
+    image: postgres:14.2
+    container_name: rallly_postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${RALLLY_DB_USER}
+      POSTGRES_PASSWORD: ${RALLLY_DB_PASSWORD}
+      POSTGRES_DB: ${RALLLY_DB_NAME}
+    volumes:
+      - /srv/docker/rallly/db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${RALLLY_DB_USER} -d ${RALLLY_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 10s
+
+volumes:
+  db-data:
+    driver: local

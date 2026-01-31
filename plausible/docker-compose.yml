@@ -1,0 +1,118 @@
+version: "3.8"
+
+services:
+  plausible:
+    image: ghcr.io/plausible/community-edition:v3.1.0
+    container_name: plausible
+    command: sh -c "mkdir -p /var/lib/plausible/tzdata_data/release_ets /var/lib/plausible/tmp && /entrypoint.sh db createdb && /entrypoint.sh db migrate && /entrypoint.sh run"
+    env_file:
+      - .env
+    environment:
+      TMPDIR: /var/lib/plausible/tmp
+      BASE_URL: ${PLAUSIBLE_BASE_URL}
+      SECRET_KEY_BASE: ${PLAUSIBLE_SECRET_KEY_BASE}
+      DISABLE_REGISTRATION: ${PLAUSIBLE_DISABLE_REGISTRATION:-true}
+      DATABASE_URL: postgresql://${PLAUSIBLE_DB_USER}:${PLAUSIBLE_DB_PASSWORD}@plausible_db:5432/${PLAUSIBLE_DB_NAME}
+      CLICKHOUSE_DATABASE_URL: http://clickhouse:8123/plausible_events_db
+      GEOIP2_DATABASE: /var/lib/plausible/geoip/dbip-city-lite.mmdb
+      IP_GEOLOCATION_DB: /var/lib/plausible/geoip/dbip-city-lite.mmdb
+      SMTP_HOST_ADDR: ${SMTP_HOST}
+      SMTP_HOST_PORT: ${SMTP_PORT}
+      SMTP_USER_NAME: ${SMTP_USER}
+      SMTP_USER_PWD: ${SMTP_PASSWORD}
+      SMTP_HOST_SSL_ENABLED: ${SMTP_SECURE:-false}
+      SMTP_ADAPTER: Bamboo.SMTPAdapter
+    ports:
+      - "${PLAUSIBLE_PORT}:8000"
+    volumes:
+      - /srv/docker/plausible/data:/var/lib/plausible
+      - ./geoip:/var/lib/plausible/geoip:ro
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    depends_on:
+      plausible_db:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 10s
+    networks:
+      - plausible_network
+
+  plausible_db:
+    image: postgres:16-alpine
+    container_name: plausible_db
+    environment:
+      POSTGRES_USER: ${PLAUSIBLE_DB_USER}
+      POSTGRES_PASSWORD: ${PLAUSIBLE_DB_PASSWORD}
+      POSTGRES_DB: ${PLAUSIBLE_DB_NAME}
+    volumes:
+      - /srv/docker/plausible/postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
+      start_period: 1m
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 10s
+    networks:
+      - plausible_network
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.12-alpine
+    container_name: plausible_clickhouse
+    environment:
+      CLICKHOUSE_SKIP_USER_SETUP: 1
+    volumes:
+      - /srv/docker/plausible/clickhouse-data:/var/lib/clickhouse
+      - /srv/docker/plausible/clickhouse-logs:/var/log/clickhouse-server
+      - ./clickhouse/logs.xml:/etc/clickhouse-server/config.d/logs.xml:ro
+      - ./clickhouse/ipv4-only.xml:/etc/clickhouse-server/config.d/ipv4-only.xml:ro
+      - ./clickhouse/low-resources.xml:/etc/clickhouse-server/config.d/low-resources.xml:ro
+      - ./clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml:ro
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 -O - http://127.0.0.1:8123/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 1m
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 10s
+    networks:
+      - plausible_network
+
+networks:
+  plausible_network:
+    driver: bridge
+

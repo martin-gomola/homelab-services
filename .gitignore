@@ -1,0 +1,52 @@
+# Environment files (contain secrets)
+.env
+*.env
+!.env.example
+!*.env.example
+.claude/
+
+# Config files (contain personal settings)
+ntfy/config/server.yml
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# Backups (should be in /srv/backups)
+backup-*.tar.gz
+*.backup
+backups/
+
+# Cache
+__pycache__/
+*.pyc
+.cache/
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+.directory
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Docker volumes (shouldn't be in repo)
+data/
+volumes/
+postgres-data/
+redis-data/
+
+# Temp files
+tmp/
+temp/
+*.tmp

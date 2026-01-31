@@ -1,0 +1,166 @@
+name: affine
+
+services:
+  affine_server:
+    image: ghcr.io/toeverything/affine:${AFFINE_REVISION:-0.25.5}
+    container_name: affine_server
+    ports:
+      - '${AFFINE_PORT:-3010}:3010'
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      affine_migration:
+        condition: service_completed_successfully
+    volumes:
+      # custom configurations
+      - /srv/docker/affine/config:/root/.affine/config
+      - /srv/docker/affine/storage:/root/.affine/storage
+    env_file:
+      - .env
+    environment:
+      - REDIS_SERVER_HOST=redis
+      - DATABASE_URL=postgresql://${DB_USERNAME}:${DB_PASSWORD}@affine_postgres:5432/${DB_DATABASE}
+      - NODE_OPTIONS=--max-old-space-size=4096
+      - MAILER_ENABLED=${MAILER_ENABLED:-true}
+      - MAILER_HOST=${MAILER_HOST:-smtp.gmail.com}
+      - MAILER_PORT=${MAILER_PORT:-587}
+      - MAILER_USER=${MAILER_USER}
+      - MAILER_SENDER=${MAILER_SENDER}
+      - MAILER_PASSWORD=${MAILER_PASSWORD}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    restart: unless-stopped
+    networks:
+      - affine_network
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 10s
+
+  affine_migration:
+    image: ghcr.io/toeverything/affine:${AFFINE_REVISION:-0.25.5}
+    container_name: affine_migration_job
+    volumes:
+      # custom configurations
+      - /srv/docker/affine/config:/root/.affine/config
+      - /srv/docker/affine/storage:/root/.affine/storage
+    command: ['sh', '-c', 'node ./scripts/self-host-predeploy.js']
+    env_file:
+      - .env
+    environment:
+      - REDIS_SERVER_HOST=redis
+      - DATABASE_URL=postgresql://${DB_USERNAME}:${DB_PASSWORD}@affine_postgres:5432/${DB_DATABASE}
+      - MAILER_ENABLED=${MAILER_ENABLED:-true}
+      - MAILER_HOST=${MAILER_HOST:-smtp.gmail.com}
+      - MAILER_PORT=${MAILER_PORT:-587}
+      - MAILER_USER=${MAILER_USER}
+      - MAILER_SENDER=${MAILER_SENDER}
+      - MAILER_PASSWORD=${MAILER_PASSWORD}
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+    networks:
+      - affine_network
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: affine_redis
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy noeviction
+    volumes:
+      - /srv/docker/affine/redis:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', '--raw', 'incr', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    restart: unless-stopped
+    networks:
+      - affine_network
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 10s
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: affine_postgres
+    restart: unless-stopped
+    # Port not exposed externally for security
+    # Only accessible within Docker network
+    volumes:
+      - /srv/docker/affine/postgres:/var/lib/postgresql/data
+      - /srv/backups/affine/postgres:/backups
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    networks:
+      - affine_network
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 10s
+
+networks:
+  affine_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
