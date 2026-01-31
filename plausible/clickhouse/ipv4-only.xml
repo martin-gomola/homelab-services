@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<clickhouse>
+    <!-- This makes ClickHouse bind to IPv4 only, since Docker doesn't enable IPv6 in bridge networks by default. -->
+    <!-- Fixes "Listen [::]:9000 failed: Address family for hostname not supported" warnings. -->
+    <listen_host>0.0.0.0</listen_host>
+</clickhouse>
+

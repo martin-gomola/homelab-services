@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<clickhouse>
+    <logger>
+        <level>warning</level>
+        <console>true</console>
+    </logger>
+</clickhouse>
+
