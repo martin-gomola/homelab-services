@@ -14,6 +14,7 @@ Docker Compose stacks for self-hosted applications. Works with [pi-commander](ht
 | **ChangeDetection** | 5050 | monitor.domain.com | Browserless on 3020 |
 | **Stirling PDF** | 8080 | pdf.domain.com | Stateless |
 | **Grocy** | 9283 | grocy.domain.com | Default login: admin/admin |
+| **Uptime Kuma** | 3006 | uptime.domain.com | Monitoring & status page |
 
 ## Quick Start
 

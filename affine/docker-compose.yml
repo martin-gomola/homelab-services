@@ -11,6 +11,8 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+      smtp_relay:
+        condition: service_healthy
       affine_migration:
         condition: service_completed_successfully
     volumes:
@@ -24,11 +26,13 @@ services:
       - DATABASE_URL=postgresql://${DB_USERNAME}:${DB_PASSWORD}@affine_postgres:5432/${DB_DATABASE}
       - NODE_OPTIONS=--max-old-space-size=4096
       - MAILER_ENABLED=${MAILER_ENABLED:-true}
-      - MAILER_HOST=${MAILER_HOST:-smtp.gmail.com}
-      - MAILER_PORT=${MAILER_PORT:-587}
-      - MAILER_USER=${MAILER_USER}
+      # Use local SMTP relay (no auth needed, relay handles Gmail TLS)
+      - MAILER_HOST=smtp_relay
+      - MAILER_PORT=587
+      - MAILER_USER=
+      - MAILER_PASSWORD=
       - MAILER_SENDER=${MAILER_SENDER}
-      - MAILER_PASSWORD=${MAILER_PASSWORD}
+      - MAILER_IGNORE_TLS=true
     logging:
       driver: "json-file"
       options:
@@ -63,11 +67,13 @@ services:
       - REDIS_SERVER_HOST=redis
       - DATABASE_URL=postgresql://${DB_USERNAME}:${DB_PASSWORD}@affine_postgres:5432/${DB_DATABASE}
       - MAILER_ENABLED=${MAILER_ENABLED:-true}
-      - MAILER_HOST=${MAILER_HOST:-smtp.gmail.com}
-      - MAILER_PORT=${MAILER_PORT:-587}
-      - MAILER_USER=${MAILER_USER}
+      # Use local SMTP relay (no auth needed, relay handles Gmail TLS)
+      - MAILER_HOST=smtp_relay
+      - MAILER_PORT=587
+      - MAILER_USER=
+      - MAILER_PASSWORD=
       - MAILER_SENDER=${MAILER_SENDER}
-      - MAILER_PASSWORD=${MAILER_PASSWORD}
+      - MAILER_IGNORE_TLS=true
     depends_on:
       redis:
         condition: service_healthy
@@ -88,6 +94,37 @@ services:
     security_opt:
       - no-new-privileges:true
     stop_grace_period: 10s
+
+  # SMTP relay to fix Affine's TLS bug (GitHub issue #14192)
+  # Accepts mail from Affine without TLS, forwards to Gmail with proper SSL
+  smtp_relay:
+    image: boky/postfix:latest
+    container_name: affine_smtp_relay
+    environment:
+      - RELAYHOST=${SMTP_RELAY_HOST:-smtp.gmail.com}:${SMTP_RELAY_PORT:-587}
+      - RELAYHOST_USERNAME=${MAILER_USER}
+      - RELAYHOST_PASSWORD=${MAILER_PASSWORD}
+      - ALLOWED_SENDER_DOMAINS=${MAIL_DOMAIN:-martingomola.com}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+    restart: unless-stopped
+    networks:
+      - affine_network
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ['CMD', 'postfix', 'status']
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   redis:
     image: redis:7-alpine
