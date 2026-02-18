@@ -8,9 +8,9 @@ services:
     ports:
       - "${MEALIE_PORT}:9000"
     volumes:
-      - /srv/docker/mealie/data:/app/data
-      - /srv/docker/mealie/backups:/app/backups # For backups
-      - /srv/docker/mealie/media:/app/media # For media files
+      - ${DATA_DIR:-/srv/docker}/mealie/data:/app/data
+      - ${DATA_DIR:-/srv/docker}/mealie/backups:/app/backups
+      - ${DATA_DIR:-/srv/docker}/mealie/media:/app/media
     environment:
       ALLOW_SIGNUP: "false"
       PUID: 1000
@@ -61,7 +61,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - /srv/docker/mealie/postgres-data:/var/lib/postgresql/data
+      - ${DATA_DIR:-/srv/docker}/mealie/postgres-data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mealie} -d ${POSTGRES_DB:-mealie}"]

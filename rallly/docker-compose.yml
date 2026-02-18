@@ -9,7 +9,7 @@ services:
     ports:
       - "${RALLLY_PORT}:3000"
     volumes:
-      - /srv/docker/rallly/uploads:/app/uploads # For file uploads
+      - ${DATA_DIR:-/srv/docker}/rallly/uploads:/app/uploads
     environment:
       DATABASE_URL: postgres://${RALLLY_DB_USER}:${RALLLY_DB_PASSWORD}@rallly_postgres/${RALLLY_DB_NAME}
       NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL}
@@ -48,7 +48,7 @@ services:
       POSTGRES_PASSWORD: ${RALLLY_DB_PASSWORD}
       POSTGRES_DB: ${RALLLY_DB_NAME}
     volumes:
-      - /srv/docker/rallly/db-data:/var/lib/postgresql/data
+      - ${DATA_DIR:-/srv/docker}/rallly/db-data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${RALLLY_DB_USER} -d ${RALLLY_DB_NAME}"]

@@ -40,7 +40,13 @@ make clean                 # Prune Docker
 
 ## Data Storage
 
-All data stored in `/srv/docker/<service>/`
+All data stored in `${DATA_DIR}/<service>/` (defaults to `/srv/docker/<service>/`).
+
+**macOS users:** Add to your `.env`:
+```bash
+DATA_DIR=/Users/yourusername/srv/docker
+BACKUP_DIR=/Users/yourusername/srv/backups
+```
 
 ## Proxy Setup
 
@@ -58,8 +64,10 @@ docker-compose logs -f
 # Port conflict
 docker ps --format "table {{.Names}}\t{{.Ports}}"
 
-# Fix permissions
+# Fix permissions (Linux)
 sudo chown -R 1000:1000 /srv/docker/<service>/
+# macOS: 
+chown -R $(whoami):staff ~/srv/docker/<service>/
 ```
 
 ---

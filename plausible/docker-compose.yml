@@ -25,7 +25,7 @@ services:
     ports:
       - "${PLAUSIBLE_PORT}:8000"
     volumes:
-      - /srv/docker/plausible/data:/var/lib/plausible
+      - ${DATA_DIR:-/srv/docker}/plausible/data:/var/lib/plausible
       - ./geoip:/var/lib/plausible/geoip:ro
     ulimits:
       nofile:
@@ -62,7 +62,7 @@ services:
       POSTGRES_PASSWORD: ${PLAUSIBLE_DB_PASSWORD}
       POSTGRES_DB: ${PLAUSIBLE_DB_NAME}
     volumes:
-      - /srv/docker/plausible/postgres-data:/var/lib/postgresql/data
+      - ${DATA_DIR:-/srv/docker}/plausible/postgres-data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
@@ -84,8 +84,8 @@ services:
     environment:
       CLICKHOUSE_SKIP_USER_SETUP: 1
     volumes:
-      - /srv/docker/plausible/clickhouse-data:/var/lib/clickhouse
-      - /srv/docker/plausible/clickhouse-logs:/var/log/clickhouse-server
+      - ${DATA_DIR:-/srv/docker}/plausible/clickhouse-data:/var/lib/clickhouse
+      - ${DATA_DIR:-/srv/docker}/plausible/clickhouse-logs:/var/log/clickhouse-server
       - ./clickhouse/logs.xml:/etc/clickhouse-server/config.d/logs.xml:ro
       - ./clickhouse/ipv4-only.xml:/etc/clickhouse-server/config.d/ipv4-only.xml:ro
       - ./clickhouse/low-resources.xml:/etc/clickhouse-server/config.d/low-resources.xml:ro

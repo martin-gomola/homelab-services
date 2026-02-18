@@ -20,9 +20,9 @@ services:
       NTFY_ENABLE_SIGNUP: ${NTFY_ENABLE_SIGNUP:-false}
     user: "${PUID:-1000}:${PGID:-1000}"
     volumes:
-      - ${DOCKER_ROOT}/ntfy/cache:/var/cache/ntfy
-      - ${DOCKER_ROOT}/ntfy/config:/etc/ntfy
-      - ${DOCKER_ROOT}/ntfy/db:/var/lib/ntfy
+      - ${DATA_DIR:-/srv/docker}/ntfy/cache:/var/cache/ntfy
+      - ${DATA_DIR:-/srv/docker}/ntfy/config:/etc/ntfy
+      - ${DATA_DIR:-/srv/docker}/ntfy/db:/var/lib/ntfy
     ports:
       - "${NTFY_PORT}:80"
     restart: unless-stopped
