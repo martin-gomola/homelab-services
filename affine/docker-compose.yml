@@ -53,7 +53,7 @@ services:
     stop_grace_period: 10s
 
   affine_migration:
-    image: ghcr.io/toeverything/affine:${AFFINE_REVISION:-0.25.5}
+    image: ghcr.io/toeverything/affine:${AFFINE_REVISION:-0.26.2}
     container_name: affine_migration_job
     volumes:
       - ${DATA_DIR:-/srv/docker}/affine/config:/root/.affine/config
