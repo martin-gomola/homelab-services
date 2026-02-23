@@ -15,6 +15,7 @@ Docker Compose stacks for self-hosted applications. Works with [pi-commander](ht
 | **Stirling PDF** | 8080 | pdf.domain.com | Stateless |
 | **Grocy** | 9283 | grocy.domain.com | Default login: admin/admin |
 | **Uptime Kuma** | 3006 | uptime.domain.com | Monitoring & status page |
+| **Mattermost** | 8065 | chat.domain.com | Team collaboration (Slack alternative) |
 
 ## Quick Start
 
@@ -53,7 +54,7 @@ BACKUP_DIR=/Users/yourusername/srv/backups
 Configure in Nginx Proxy Manager:
 1. Forward `service.domain.com` → `server-ip:port`
 2. Enable SSL
-3. Enable WebSockets (for Affine)
+3. Enable WebSockets (for Affine, Mattermost)
 
 ## Troubleshooting
 

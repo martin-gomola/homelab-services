@@ -1,0 +1,83 @@
+name: mattermost
+
+services:
+  mattermost:
+    image: mattermost/mattermost-team-edition:${MATTERMOST_VERSION:-10.4}
+    container_name: mattermost
+    env_file:
+      - .env
+    ports:
+      - "${MATTERMOST_PORT:-8065}:8065"
+    volumes:
+      - ${DATA_DIR:-/srv/docker}/mattermost/config:/mattermost/config:rw
+      - ${DATA_DIR:-/srv/docker}/mattermost/data:/mattermost/data:rw
+      - ${DATA_DIR:-/srv/docker}/mattermost/logs:/mattermost/logs:rw
+      - ${DATA_DIR:-/srv/docker}/mattermost/plugins:/mattermost/plugins:rw
+      - ${DATA_DIR:-/srv/docker}/mattermost/client-plugins:/mattermost/client/plugins:rw
+      - ${DATA_DIR:-/srv/docker}/mattermost/bleve-indexes:/mattermost/bleve-indexes:rw
+    environment:
+      TZ: ${TZ:-UTC}
+      MM_SQLSETTINGS_DRIVERNAME: postgres
+      MM_SQLSETTINGS_DATASOURCE: postgres://${MM_DB_USER}:${MM_DB_PASSWORD}@mattermost_postgres:5432/${MM_DB_NAME}?sslmode=disable&connect_timeout=10
+      MM_BLEVESETTINGS_INDEXDIR: /mattermost/bleve-indexes
+      MM_SERVICESETTINGS_SITEURL: ${MM_SITE_URL}
+      MM_SERVICESETTINGS_LISTENADDRESS: ":8065"
+      MM_EMAILSETTINGS_SMTPSERVER: ${SMTP_HOST:-}
+      MM_EMAILSETTINGS_SMTPPORT: ${SMTP_PORT:-587}
+      MM_EMAILSETTINGS_SMTPUSERNAME: ${SMTP_USER:-}
+      MM_EMAILSETTINGS_SMTPPASSWORD: ${SMTP_PASSWORD:-}
+      MM_EMAILSETTINGS_ENABLESMTPAUTH: ${MM_SMTP_AUTH:-true}
+      MM_EMAILSETTINGS_CONNECTIONSECURITY: ${MM_SMTP_SECURITY:-STARTTLS}
+      MM_EMAILSETTINGS_FEEDBACKEMAIL: ${MM_FEEDBACK_EMAIL:-}
+      MM_EMAILSETTINGS_REPLYTOADDRESS: ${MM_REPLY_TO_EMAIL:-}
+    depends_on:
+      mattermost_postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8065/api/v4/system/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 10s
+    networks:
+      - mattermost_network
+
+  mattermost_postgres:
+    image: postgres:16-alpine
+    container_name: mattermost_postgres
+    environment:
+      POSTGRES_USER: ${MM_DB_USER}
+      POSTGRES_PASSWORD: ${MM_DB_PASSWORD}
+      POSTGRES_DB: ${MM_DB_NAME}
+    volumes:
+      - ${DATA_DIR:-/srv/docker}/mattermost/postgres:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${MM_DB_USER:-mattermost} -d ${MM_DB_NAME:-mattermost}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 10s
+    networks:
+      - mattermost_network
+
+networks:
+  mattermost_network:
+    driver: bridge
