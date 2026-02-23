@@ -7,7 +7,7 @@ Self-hosted collaborative documentation platform.
 ```bash
 cp .env.example .env
 nano .env  # Configure your settings
-docker compose up -d
+docker-compose up -d
 ```
 
 ## Configuration

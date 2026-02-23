@@ -8,7 +8,7 @@ Lightweight, privacy-focused web analytics. PostgreSQL only, no ClickHouse. ~512
 cp .env.example .env
 # Set UMAMI_APP_SECRET: openssl rand -base64 32 | tr -d '\n'; echo
 nano .env
-docker compose up -d
+docker-compose up -d
 ```
 
 ## Access

@@ -8,7 +8,7 @@ Chat interface for local LLMs. Ollama runs natively for Metal GPU acceleration.
 brew install ollama
 ollama serve
 ollama pull ministral-3:8b
-docker compose up -d
+docker-compose up -d
 ```
 
 ## Access
