@@ -17,6 +17,7 @@ Docker Compose stacks for self-hosted applications. Works with [pi-commander](ht
 | **Uptime Kuma** | 3006 | uptime.domain.com | Monitoring & status page |
 | **Mattermost** | 8065 | chat.domain.com | Team collaboration (Slack alternative) |
 | **Open WebUI** | 3040 | ai.domain.com | Chat UI for Ollama (native) |
+| **Umami** | 3025 | stats.domain.com | Lightweight analytics (PostgreSQL only) |
 
 ## Quick Start
 

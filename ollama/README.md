@@ -13,7 +13,7 @@ docker compose up -d
 
 ## Access
 
-Open WebUI: http://localhost:3000
+Open WebUI: http://localhost:3040
 
 ## Workflow
 
