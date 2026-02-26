@@ -4,7 +4,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends nodejs npm ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-RUN npm install -g @openai/codex@0.104.0
+RUN npm install -g @openai/codex@0.105.0
 
 WORKDIR /app
 
