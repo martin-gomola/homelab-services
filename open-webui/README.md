@@ -7,6 +7,17 @@ This is a copy/paste runbook for:
 - Codex Gateway tool integration
 - Open WebUI MCP server (`openwebui-mcp-server`) via `uv`
 
+## Quick Start (Minimum Path)
+
+Use this order if you want the fastest working setup:
+1. Install prerequisites (`ollama`, `docker`, `uv`).
+2. Copy `.env.example` to `.env` and set required keys.
+3. Start Ollama and pull `qwen2.5-coder:7b`.
+4. Start Open WebUI with `docker compose up -d`.
+5. If you need External Tools, start `mcpo` + `codex-gateway` profiles.
+6. In Open WebUI, configure Connections and External Tools.
+7. In chat, select `qwen2.5-coder:7b` when you need tools.
+
 ## 1. Install Prerequisites
 
 ```bash
@@ -41,7 +52,7 @@ Edit `.env` and set at minimum:
 - `CODEX_CONFIG_DIR=/Users/<service-user>/.codex`
 - `CODEX_WORKSPACE_DIR=/Users/<service-user>/dev/homelab-services`
 
-## 3. Start Ollama First, Pull Models Second
+## 3. Start Ollama and Pull Required Model
 
 Terminal 1:
 
@@ -52,10 +63,12 @@ ollama serve
 Terminal 2:
 
 ```bash
-ollama pull ministral-3:8b
 ollama pull qwen2.5-coder:7b
 ollama list
 ```
+
+Use `qwen2.5-coder:7b` for chats that need External Tools.  
+`ministral-3:8b` is not compatible with our external tools integration.
 
 ## 4. Start Open WebUI Stack
 
@@ -66,7 +79,7 @@ cd "$REPO_DIR"
 docker compose up -d
 ```
 
-Optional tool services (`mcpo` + `codex-gateway`):
+Optional tool services (`mcpo` + `codex-gateway`) for External Tools:
 
 ```bash
 cd "$REPO_DIR"
@@ -117,7 +130,12 @@ Choose one:
 
 If tools exist in admin settings but not in normal chat, check role/permission visibility for tools.
 
-### 6.4 Reapply Tool Servers After Reset (Script)
+### 6.4 Model Selection For External Tools
+1. Open a new chat.
+2. Select model `qwen2.5-coder:7b`.
+3. Avoid `ministral-3:8b` when using tools.
+
+### 6.5 Reapply Tool Servers After Reset (Script)
 
 This script upserts (does not wipe other entries):
 - `Context7` as MCP (`https://mcp.context7.com/mcp`)
