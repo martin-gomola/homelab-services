@@ -32,6 +32,7 @@ openssl rand -hex 32
 Put the generated key into `.env` as `WEBUI_SECRET_KEY`.
 
 Edit `.env` and set at minimum:
+- `HOST_DATA_DIR=/Users/<service-user>/dev/homelab-services/data` (macOS/OrbStack: prevents data loss from `/srv/docker` inside VM)
 - `WEBUI_URL=https://ai.home.example.com`
 - `ENABLE_WEBSOCKET_SUPPORT=true`
 - `WEBUI_SECRET_KEY=<your_64_hex_chars>`
@@ -135,6 +136,69 @@ Related env keys:
 - `OPENWEBUI_MCP_PATH`
 - `OPENWEBUI_MCP_API_KEY`
 
+### 7.1 Keep MCP Running Across Restarts (macOS LaunchAgent)
+
+If `docker`/OrbStack restarts, the standalone MCP bridge process can disappear.  
+Use a user LaunchAgent so it auto-starts and stays alive.
+
+Create `~/Library/LaunchAgents/com.openwebui.mcp.plist`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.openwebui.mcp</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>-lc</string>
+    <string>cd "$HOME/dev/homelab-services/open-webui" &amp;&amp; ./run-openwebui-mcp.sh</string>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/openwebui-mcp.launchd.out.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/tmp/openwebui-mcp.launchd.err.log</string>
+</dict>
+</plist>
+```
+
+Load and start:
+
+```bash
+launchctl bootstrap "gui/$(id -u)" "$HOME/Library/LaunchAgents/com.openwebui.mcp.plist"
+launchctl kickstart -k "gui/$(id -u)/com.openwebui.mcp"
+```
+
+Useful commands:
+
+```bash
+# status
+launchctl print "gui/$(id -u)/com.openwebui.mcp" | head -n 40
+
+# restart
+launchctl kickstart -k "gui/$(id -u)/com.openwebui.mcp"
+
+# stop/unload
+launchctl bootout "gui/$(id -u)/com.openwebui.mcp"
+```
+
 ## 8. Quick Health Checks
 
 ```bash
@@ -151,3 +215,52 @@ curl -i http://127.0.0.1:8001/mcp | head
 - Containers started by an admin user keep running after logout.
 - Keep data mount path unchanged (`/srv/docker/ollama/open-webui`) to avoid migration issues.
 - Grant only required folder access to the non-admin runtime user.
+
+## 10. Troubleshooting
+
+### 10.1 `docker ps` hangs (OrbStack)
+
+If Docker commands hang with no output, restart OrbStack and retry:
+
+```bash
+orbctl status
+orbctl stop
+orbctl start
+docker ps
+```
+
+### 10.2 Open WebUI MCP endpoint missing after restart
+
+Symptoms:
+- `curl http://127.0.0.1:8001/mcp` fails to connect
+- MCP tools disappear in clients
+
+Checks:
+
+```bash
+pgrep -fl 'openwebui-mcp|run-openwebui-mcp'
+curl -i http://127.0.0.1:8001/mcp | head
+```
+
+Expected MCP response for plain curl is `406 Not Acceptable` (this is healthy for non-SSE requests).
+
+Recovery:
+
+```bash
+launchctl kickstart -k "gui/$(id -u)/com.openwebui.mcp"
+```
+
+### 10.3 Ollama API not reachable (`127.0.0.1:11434`)
+
+Checks:
+
+```bash
+pgrep -fl 'ollama serve'
+curl -sS http://127.0.0.1:11434/api/tags
+```
+
+Recovery:
+
+```bash
+nohup ollama serve >/tmp/ollama-serve.log 2>&1 &
+```
