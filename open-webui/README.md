@@ -117,6 +117,23 @@ Choose one:
 
 If tools exist in admin settings but not in normal chat, check role/permission visibility for tools.
 
+### 6.4 Reapply Tool Servers After Reset (Script)
+
+This script upserts (does not wipe other entries):
+- `Context7` as MCP (`https://mcp.context7.com/mcp`)
+- `Codex Gateway` as OpenAPI (`http://codex-gateway:8091/openapi.json`)
+
+Run:
+
+```bash
+cd "$REPO_DIR"
+./sync-tool-servers.py --email "<admin_email>"
+```
+
+It reads keys from `.env`:
+- `MCPO_CONTEXT7_API_KEY` (or `CONTEXT7_API_KEY` env override)
+- `CODEX_GATEWAY_API_KEY`
+
 ## 7. Start Open WebUI MCP Server (Optional)
 
 Use this if you want MCP clients (Codex CLI, Claude Desktop) to manage Open WebUI objects via MCP.

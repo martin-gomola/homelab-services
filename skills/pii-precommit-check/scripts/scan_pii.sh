@@ -15,6 +15,7 @@ EOF
 }
 
 mode="staged"
+explicit_paths=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --staged)
@@ -34,6 +35,7 @@ while [[ $# -gt 0 ]]; do
       break
       ;;
     *)
+      explicit_paths=1
       break
       ;;
   esac
@@ -48,14 +50,28 @@ declare -a files=()
 if [[ $# -gt 0 ]]; then
   files=("$@")
 elif [[ "$mode" == "staged" ]]; then
-  mapfile -d '' files < <(git diff --cached --name-only -z --diff-filter=ACMR)
+  while IFS= read -r -d '' f; do
+    files+=("$f")
+  done < <(git diff --cached --name-only -z --diff-filter=ACMR)
 else
-  mapfile -d '' files < <(git ls-files -z)
+  while IFS= read -r -d '' f; do
+    files+=("$f")
+  done < <(git ls-files -z)
 fi
 
 declare -a existing_files=()
 for f in "${files[@]}"; do
-  [[ -f "$f" ]] && existing_files+=("$f")
+  if [[ "$mode" == "staged" && "$explicit_paths" -eq 0 ]]; then
+    git cat-file -e ":$f" >/dev/null 2>&1 && existing_files+=("$f")
+  elif [[ "$mode" == "staged" && "$explicit_paths" -eq 1 ]]; then
+    if git cat-file -e ":$f" >/dev/null 2>&1; then
+      existing_files+=("$f")
+    elif [[ -f "$f" ]]; then
+      existing_files+=("$f")
+    fi
+  elif [[ -f "$f" ]]; then
+    existing_files+=("$f")
+  fi
 done
 
 if [[ ${#existing_files[@]} -eq 0 ]]; then
@@ -63,13 +79,8 @@ if [[ ${#existing_files[@]} -eq 0 ]]; then
   exit 0
 fi
 
-scanner="rg"
-if ! command -v rg >/dev/null 2>&1; then
-  scanner="grep"
-fi
-
 # Ignore known placeholders and explicit per-line allow markers.
-ignore_pattern='pii:allow|yourusername|<service-user>|<your-user>|example\.com|user@example\.com'
+ignore_pattern='pii:allow|yourusername|<service-user>|<your-user>|example\.com|user@example\.com|admin@example\.com|noreply@example\.com|your-email@example\.com|your-email@gmail\.com|your@email\.com|@ntfy\.sh'
 
 declare -a checks=(
   'Email address|[[:alnum:]._%+-]+@[[:alnum:].-]+\.[[:alpha:]]{2,}'
@@ -85,18 +96,34 @@ found=0
 for entry in "${checks[@]}"; do
   label="${entry%%|*}"
   pattern="${entry#*|}"
+  check_output=""
 
-  if [[ "$scanner" == "rg" ]]; then
-    matches="$(rg -nH --no-heading -I -e "$pattern" -- "${existing_files[@]}" 2>/dev/null || true)"
+  if [[ "$mode" == "staged" ]]; then
+    for f in "${existing_files[@]}"; do
+      if git cat-file -e ":$f" >/dev/null 2>&1; then
+        matches="$(git show ":$f" 2>/dev/null | LC_ALL=C grep -nEa -e "$pattern" || true)"
+        if [[ -n "$matches" ]]; then
+          matches="$(printf '%s\n' "$matches" | sed "s|^|$f:|")"
+          check_output+="$matches"$'\n'
+        fi
+      elif [[ -f "$f" ]]; then
+        matches="$(LC_ALL=C grep -nHEa -e "$pattern" "$f" 2>/dev/null || true)"
+        [[ -n "$matches" ]] && check_output+="$matches"$'\n'
+      fi
+    done
   else
-    matches="$(grep -nHE "$pattern" "${existing_files[@]}" 2>/dev/null || true)"
+    matches="$(rg -n --with-filename --no-heading -I -e "$pattern" -- "${existing_files[@]}" 2>/dev/null || true)"
+    if [[ -z "$matches" ]]; then
+      matches="$(LC_ALL=C grep -nHEa -e "$pattern" "${existing_files[@]}" 2>/dev/null || true)"
+    fi
+    check_output="$matches"
   fi
 
-  if [[ -z "$matches" ]]; then
+  if [[ -z "$check_output" ]]; then
     continue
   fi
 
-  filtered="$(printf '%s\n' "$matches" | grep -Ev "$ignore_pattern" || true)"
+  filtered="$(printf '%s\n' "$check_output" | grep -Ev "$ignore_pattern" || true)"
   if [[ -z "$filtered" ]]; then
     continue
   fi

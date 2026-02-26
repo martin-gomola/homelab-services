@@ -32,6 +32,8 @@ skills/pii-precommit-check/scripts/scan_pii.sh --all
 skills/pii-precommit-check/scripts/install_pre_commit_hook.sh
 ```
 
+The installer keeps existing hook logic by chaining `pre-commit.local` if present.
+
 ## Notes
 
 - Use `pii:allow` on a line to suppress intentional test fixtures.
