@@ -60,19 +60,21 @@ else
 fi
 
 declare -a existing_files=()
-for f in "${files[@]}"; do
-  if [[ "$mode" == "staged" && "$explicit_paths" -eq 0 ]]; then
-    git cat-file -e ":$f" >/dev/null 2>&1 && existing_files+=("$f")
-  elif [[ "$mode" == "staged" && "$explicit_paths" -eq 1 ]]; then
-    if git cat-file -e ":$f" >/dev/null 2>&1; then
-      existing_files+=("$f")
+if [[ ${#files[@]} -gt 0 ]]; then
+  for f in "${files[@]}"; do
+    if [[ "$mode" == "staged" && "$explicit_paths" -eq 0 ]]; then
+      git cat-file -e ":$f" >/dev/null 2>&1 && existing_files+=("$f")
+    elif [[ "$mode" == "staged" && "$explicit_paths" -eq 1 ]]; then
+      if git cat-file -e ":$f" >/dev/null 2>&1; then
+        existing_files+=("$f")
+      elif [[ -f "$f" ]]; then
+        existing_files+=("$f")
+      fi
     elif [[ -f "$f" ]]; then
       existing_files+=("$f")
     fi
-  elif [[ -f "$f" ]]; then
-    existing_files+=("$f")
-  fi
-done
+  done
+fi
 
 if [[ ${#existing_files[@]} -eq 0 ]]; then
   echo "No files to scan."
