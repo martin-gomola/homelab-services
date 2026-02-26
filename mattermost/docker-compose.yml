@@ -2,7 +2,7 @@ name: mattermost
 
 services:
   mattermost:
-    image: mattermost/mattermost-team-edition:${MATTERMOST_VERSION:-11.4.1}
+    image: ${MATTERMOST_IMAGE:-mattermost/mattermost-enterprise-edition}:${MATTERMOST_VERSION:-11.4.1}
     platform: linux/amd64
     container_name: mattermost
     env_file:
@@ -25,6 +25,8 @@ services:
       MM_SERVICESETTINGS_WEBSOCKETURL: ${MM_WEBSOCKET_URL:-}
       MM_SERVICESETTINGS_ALLOWCORSFROM: ${MM_ALLOW_CORS_FROM:-}
       MM_SERVICESETTINGS_LISTENADDRESS: ":8065"
+      MM_PLUGINSETTINGS_ENABLE: "true"
+      MM_PLUGINSETTINGS_ENABLEUPLOADS: ${MM_PLUGIN_UPLOADS_ENABLED:-true}
       MM_EMAILSETTINGS_SMTPSERVER: ${SMTP_HOST:-}
       MM_EMAILSETTINGS_SMTPPORT: ${SMTP_PORT:-587}
       MM_EMAILSETTINGS_SMTPUSERNAME: ${SMTP_USER:-}

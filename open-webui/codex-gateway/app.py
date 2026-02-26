@@ -3,6 +3,7 @@ import subprocess
 import tempfile
 import time
 from pathlib import Path
+from typing import Literal
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -12,6 +13,10 @@ from pydantic import BaseModel, Field
 CODEX_BIN = os.environ.get("CODEX_BIN", "codex")
 CODEX_GATEWAY_API_KEY = os.environ.get("CODEX_GATEWAY_API_KEY", "")
 CODEX_DEFAULT_MODEL = os.environ.get("CODEX_DEFAULT_MODEL", "").strip()
+CODEX_DEFAULT_REASONING_EFFORT = os.environ.get(
+    "CODEX_DEFAULT_REASONING_EFFORT", "low"
+).strip()
+CODEX_DISABLE_CONTEXT7 = os.environ.get("CODEX_DISABLE_CONTEXT7", "false").lower() == "true"
 CODEX_WORKSPACE_ROOT = Path(
     os.environ.get("CODEX_WORKSPACE_ROOT", "/workspace")
 ).resolve()
@@ -45,6 +50,14 @@ class DelegateRequest(BaseModel):
     model: str | None = Field(
         default=None,
         description="Optional Codex model override, e.g. o3 or gpt-5-codex.",
+    )
+    reasoning_effort: Literal["low", "medium", "high", "xhigh"] | None = Field(
+        default=None,
+        description="Optional reasoning effort override for this request.",
+    )
+    disable_context7: bool | None = Field(
+        default=None,
+        description="Disable context7 MCP server for this request to reduce startup overhead.",
     )
     timeout_seconds: int | None = Field(
         default=None,
@@ -122,6 +135,16 @@ def build_cmd(request: DelegateRequest, workdir: Path, output_file: Path) -> lis
     if model:
         cmd.extend(["--model", model])
 
+    reasoning_effort = (request.reasoning_effort or CODEX_DEFAULT_REASONING_EFFORT).strip()
+    if reasoning_effort:
+        cmd.extend(["-c", f'model_reasoning_effort="{reasoning_effort}"'])
+
+    disable_context7 = (
+        CODEX_DISABLE_CONTEXT7 if request.disable_context7 is None else request.disable_context7
+    )
+    if disable_context7:
+        cmd.extend(["-c", "mcp_servers.context7.enabled=false"])
+
     cmd.append(request.task)
     return cmd
 
@@ -133,6 +156,8 @@ def healthz() -> dict:
         "codex_bin": CODEX_BIN,
         "workspace_root": str(CODEX_WORKSPACE_ROOT),
         "allow_write": ALLOW_WRITE,
+        "default_reasoning_effort": CODEX_DEFAULT_REASONING_EFFORT,
+        "disable_context7": CODEX_DISABLE_CONTEXT7,
     }
 
 

@@ -12,11 +12,11 @@ This is a copy/paste runbook for:
 Use this order if you want the fastest working setup:
 1. Install prerequisites (`ollama`, `docker`, `uv`).
 2. Copy `.env.example` to `.env` and set required keys.
-3. Start Ollama and pull `qwen2.5-coder:7b`.
+3. Start Ollama and pull `ministral-3:8b` and `qwen2.5-coder:7b`.
 4. Start Open WebUI with `docker compose up -d`.
 5. If you need External Tools, start `mcpo` + `codex-gateway` profiles.
 6. In Open WebUI, configure Connections and External Tools.
-7. In chat, select `qwen2.5-coder:7b` when you need tools.
+7. In chat, use either `ministral-3:8b` (native tools) or `qwen2.5-coder:7b` (non-native tool flow).
 
 ## 1. Install Prerequisites
 
@@ -51,6 +51,9 @@ Edit `.env` and set at minimum:
 - `CODEX_GATEWAY_API_KEY=<your_gateway_key>` (if using Codex Gateway)
 - `CODEX_CONFIG_DIR=/Users/<service-user>/.codex`
 - `CODEX_WORKSPACE_DIR=/Users/<service-user>/dev/homelab-services`
+- `CODEX_DEFAULT_MODEL=gpt-5-codex` (recommended for lower latency)
+- `CODEX_DEFAULT_REASONING_EFFORT=low` (recommended for lower latency)
+- `CODEX_DISABLE_CONTEXT7=true` (avoid per-request MCP startup overhead in gateway)
 
 ## 3. Start Ollama and Pull Required Model
 
@@ -63,12 +66,13 @@ ollama serve
 Terminal 2:
 
 ```bash
+ollama pull ministral-3:8b
 ollama pull qwen2.5-coder:7b
 ollama list
 ```
 
-Use `qwen2.5-coder:7b` for chats that need External Tools.  
-`ministral-3:8b` is not compatible with our external tools integration.
+Use `ministral-3:8b` for native tool calls.  
+Use `qwen2.5-coder:7b` with non-native tool flow configured by `OPENWEBUI_TOOL_MODEL_NON_NATIVE_IDS`.
 
 ## 4. Start Open WebUI Stack
 
@@ -78,6 +82,9 @@ Core service:
 cd "$REPO_DIR"
 docker compose up -d
 ```
+
+This repo builds a local Open WebUI image (`Dockerfile.open-webui`) that patches
+non-native tool routing for models like `qwen2.5-coder:7b`.
 
 Optional tool services (`mcpo` + `codex-gateway`) for External Tools:
 
@@ -132,14 +139,19 @@ If tools exist in admin settings but not in normal chat, check role/permission v
 
 ### 6.4 Model Selection For External Tools
 1. Open a new chat.
-2. Select model `qwen2.5-coder:7b`.
-3. Avoid `ministral-3:8b` when using tools.
+2. Select model `ministral-3:8b` or `qwen2.5-coder:7b`.
+3. Keep `qwen2.5-coder:7b` in non-native mode via `OPENWEBUI_TOOL_MODEL_NON_NATIVE_IDS`.
 
 ### 6.5 Reapply Tool Servers After Reset (Script)
 
 This script upserts (does not wipe other entries):
 - `Context7` as MCP (`https://mcp.context7.com/mcp`)
 - `Codex Gateway` as OpenAPI (`http://codex-gateway:8091/openapi.json`)
+- Tool model settings for `OPENWEBUI_TOOL_MODEL_IDS`:
+  - `params.function_calling = native` by default
+  - models listed in `OPENWEBUI_TOOL_MODEL_NON_NATIVE_IDS` are set to `params.function_calling = default`
+  - `meta.toolIds` includes both Context7 and Codex Gateway
+- Slash prompt `/codex` (enabled by default) for faster Codex Gateway usage
 
 Run:
 
@@ -151,6 +163,22 @@ cd "$REPO_DIR"
 It reads keys from `.env`:
 - `MCPO_CONTEXT7_API_KEY` (or `CONTEXT7_API_KEY` env override)
 - `CODEX_GATEWAY_API_KEY`
+- `OPENWEBUI_TOOL_MODEL_IDS` (comma-separated, default `ministral-3:8b`)
+- `OPENWEBUI_TOOL_MODEL_NON_NATIVE_IDS` (comma-separated, default empty)
+- `OPENWEBUI_CODEX_SLASH_ENABLE` (`true`/`false`, default `true`)
+- `OPENWEBUI_CODEX_SLASH_COMMAND` (default `codex`)
+- `OPENWEBUI_CODEX_SLASH_NAME` (default `Codex Gateway Shortcut`)
+- `OPENWEBUI_CODEX_SLASH_CONTENT` (default text that inserts Codex Gateway instruction)
+
+Useful flags:
+- `--tool-model-ids "ministral-3:8b,qwen2.5-coder:7b"`
+- `--non-native-model-ids "qwen2.5-coder:7b"`
+- `--skip-model-upsert` (only manage tool servers)
+- `--replace-model-tool-ids` (replace instead of merge)
+- `--skip-prompt-upsert` (skip `/codex` shortcut)
+- `--codex-command "codex"`
+- `--codex-prompt-name "Codex Gateway Shortcut"`
+- `--codex-prompt-content "Use Codex Gateway tool delegate_delegate_post to complete this task: "`
 
 ## 7. Start Open WebUI MCP Server (Optional)
 
