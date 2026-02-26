@@ -2,7 +2,8 @@ name: mattermost
 
 services:
   mattermost:
-    image: mattermost/mattermost-team-edition:${MATTERMOST_VERSION:-10.4}
+    image: mattermost/mattermost-team-edition:${MATTERMOST_VERSION:-11.4.1}
+    platform: linux/amd64
     container_name: mattermost
     env_file:
       - .env
@@ -21,6 +22,8 @@ services:
       MM_SQLSETTINGS_DATASOURCE: postgres://${MM_DB_USER}:${MM_DB_PASSWORD}@mattermost_postgres:5432/${MM_DB_NAME}?sslmode=disable&connect_timeout=10
       MM_BLEVESETTINGS_INDEXDIR: /mattermost/bleve-indexes
       MM_SERVICESETTINGS_SITEURL: ${MM_SITE_URL}
+      MM_SERVICESETTINGS_WEBSOCKETURL: ${MM_WEBSOCKET_URL:-}
+      MM_SERVICESETTINGS_ALLOWCORSFROM: ${MM_ALLOW_CORS_FROM:-}
       MM_SERVICESETTINGS_LISTENADDRESS: ":8065"
       MM_EMAILSETTINGS_SMTPSERVER: ${SMTP_HOST:-}
       MM_EMAILSETTINGS_SMTPPORT: ${SMTP_PORT:-587}
@@ -35,7 +38,8 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:8065/api/v4/system/ping"]
+      # Mattermost 11+ image is distroless (no curl/wget/shell available)
+      test: ["CMD", "/mattermost/bin/mattermost", "version"]
       interval: 30s
       timeout: 10s
       retries: 3
