@@ -157,7 +157,7 @@ Run:
 
 ```bash
 cd "$REPO_DIR"
-./sync-tool-servers.py --email "<admin_email>"
+./scripts/sync-tool-servers.py --email "<admin_email>"
 ```
 
 It reads keys from `.env`:
@@ -186,7 +186,7 @@ Use this if you want MCP clients (Codex CLI, Claude Desktop) to manage Open WebU
 
 ```bash
 cd "$REPO_DIR"
-./run-openwebui-mcp.sh
+./scripts/run-openwebui-mcp.sh
 ```
 
 Default MCP endpoint:
@@ -218,7 +218,7 @@ Create `~/Library/LaunchAgents/com.openwebui.mcp.plist`:
   <array>
     <string>/bin/zsh</string>
     <string>-lc</string>
-    <string>cd "$HOME/dev/homelab-services/open-webui" &amp;&amp; ./run-openwebui-mcp.sh</string>
+    <string>cd "$HOME/dev/homelab-services/open-webui" &amp;&amp; ./scripts/run-openwebui-mcp.sh</string>
   </array>
 
   <key>RunAtLoad</key>

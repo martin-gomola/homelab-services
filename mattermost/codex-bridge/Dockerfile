@@ -12,6 +12,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app.py .
+COPY codex_bridge ./codex_bridge
 
 RUN useradd -m -u 1000 -s /bin/bash codex \
     && mkdir -p /home/codex/.codex /tmp/codex-bridge \

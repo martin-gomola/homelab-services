@@ -375,7 +375,10 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true", help="Do not write; print planned connections")
     args = parser.parse_args()
 
-    repo_dir = Path(__file__).resolve().parent
+    script_dir = Path(__file__).resolve().parent
+    repo_dir = script_dir.parent
+    if not (repo_dir / ".env").exists() and not (repo_dir / ".env.example").exists():
+        repo_dir = script_dir
     dotenv = load_env_file(repo_dir / ".env")
 
     base_url = build_base_url(dotenv, args.base_url)

@@ -1,7 +1,7 @@
 FROM ghcr.io/open-webui/open-webui:main
 
-COPY openwebui-patches/patch_middleware_tools_non_native.py /tmp/patch_middleware_tools_non_native.py
-COPY openwebui-patches/patch_tool_prompt_delegate_priority.py /tmp/patch_tool_prompt_delegate_priority.py
+COPY patches/openwebui/patch_middleware_tools_non_native.py /tmp/patch_middleware_tools_non_native.py
+COPY patches/openwebui/patch_tool_prompt_delegate_priority.py /tmp/patch_tool_prompt_delegate_priority.py
 RUN python /tmp/patch_middleware_tools_non_native.py \
  && python /tmp/patch_tool_prompt_delegate_priority.py \
  && rm -f /tmp/patch_middleware_tools_non_native.py /tmp/patch_tool_prompt_delegate_priority.py
