@@ -1,6 +1,7 @@
 # Mattermost + Agents
 
 This stack runs Mattermost with the built-in Agents plugin (`mattermost-ai`).
+It also includes `codex-bridge`, a local OpenAI-compatible adapter for Codex CLI.
 
 ## Why Enterprise Image
 
@@ -12,7 +13,7 @@ When running Enterprise Edition, an Entry license can be auto-applied.
 
 ```bash
 cd /Users/mgomola/dev/homelab-services/mattermost
-docker compose --env-file .env up -d
+docker compose --env-file .env up -d --build
 ```
 
 ## Bootstrap Agents Config
@@ -21,7 +22,7 @@ This repo includes `configure-agents.sh` to seed plugin config in `config.json`.
 
 It configures:
 - Ollama bot via OpenAI-compatible API (`http://host.docker.internal:11434/v1`)
-- Optional Codex bot (OpenAI or OpenAI-compatible endpoint)
+- Optional Codex bot (`http://codex-bridge:8092/v1`)
 
 Run:
 
@@ -31,30 +32,39 @@ chmod +x ./configure-agents.sh
 ./configure-agents.sh
 ```
 
-## Codex Note
+## Codex On Mattermost (No OpenAI API Key)
 
-`codex-gateway` from this homelab exposes `/delegate` only. It is not an
-OpenAI-compatible chat-completions endpoint, so it cannot be used directly as an
-Agents "Service".
-
-To use a Codex bot in Agents, use:
-- OpenAI provider (`gpt-5-codex`) with `AGENTS_CODEX_API_KEY`, or
-- another OpenAI-compatible endpoint.
-
-## Optional Codex Bot
+`codex-bridge` uses your existing Codex login token from `~/.codex/auth.json` and
+exposes an OpenAI-compatible endpoint for the Agents plugin.
 
 In `.env`, set:
 
 ```dotenv
 AGENTS_ENABLE_CODEX_BOT=true
-AGENTS_CODEX_PROVIDER=openai
-AGENTS_CODEX_API_URL=https://api.openai.com/v1
-AGENTS_CODEX_API_KEY=your_openai_key
+AGENTS_CODEX_PROVIDER=openaicompatible
+AGENTS_CODEX_API_URL=http://codex-bridge:8092/v1
+AGENTS_CODEX_API_KEY=your_local_shared_secret
 AGENTS_CODEX_MODEL=gpt-5-codex
+CODEX_CONFIG_DIR=/Users/<you>/.codex
+CODEX_WORKSPACE_DIR=/Users/<you>/dev/homelab-services
 ```
 
 Then rerun:
 
 ```bash
 ./configure-agents.sh
+```
+
+`AGENTS_CODEX_API_KEY` here is only a local bearer secret between Mattermost and
+`codex-bridge`. It is not an OpenAI key.
+
+## Optional OpenAI Provider Instead
+
+If you want direct OpenAI instead of local bridge:
+
+```dotenv
+AGENTS_ENABLE_CODEX_BOT=true
+AGENTS_CODEX_PROVIDER=openai
+AGENTS_CODEX_API_URL=https://api.openai.com/v1
+AGENTS_CODEX_API_KEY=<openai_api_key>
 ```

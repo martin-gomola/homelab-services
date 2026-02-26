@@ -57,6 +57,46 @@ services:
     networks:
       - mattermost_network
 
+  codex-bridge:
+    build:
+      context: ./codex-bridge
+    container_name: mattermost_codex_bridge
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ:-UTC}
+      CODEX_BRIDGE_API_KEY: ${AGENTS_CODEX_API_KEY:-}
+      CODEX_WORKDIR: /workspace
+      CODEX_STATE_DIR: /tmp/codex-bridge
+      CODEX_ALLOW_WRITE: ${CODEX_ALLOW_WRITE:-false}
+      CODEX_DEFAULT_MODEL: ${AGENTS_CODEX_MODEL:-gpt-5-codex}
+      CODEX_DEFAULT_REASONING_EFFORT: ${CODEX_DEFAULT_REASONING_EFFORT:-low}
+      CODEX_DISABLE_CONTEXT7: ${CODEX_DISABLE_CONTEXT7:-true}
+      CODEX_TIMEOUT_SECONDS: ${CODEX_TIMEOUT_SECONDS:-300}
+      CODEX_MAX_TIMEOUT_SECONDS: ${CODEX_MAX_TIMEOUT_SECONDS:-900}
+    volumes:
+      - ${CODEX_CONFIG_DIR:-/srv/docker/codex-config}:/home/codex/.codex
+      - ${CODEX_WORKSPACE_DIR:-/srv/docker/workspace}:/workspace
+    expose:
+      - "8092"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8092/healthz', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 10s
+    networks:
+      - mattermost_network
+
   mattermost_postgres:
     image: postgres:16-alpine
     container_name: mattermost_postgres
