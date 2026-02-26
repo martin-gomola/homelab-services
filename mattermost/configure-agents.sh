@@ -49,7 +49,7 @@ AGENTS_CODEX_API_KEY="${AGENTS_CODEX_API_KEY:-}"
 AGENTS_CODEX_MODEL="${AGENTS_CODEX_MODEL:-gpt-5-codex}"
 AGENTS_CODEX_BOT_NAME="${AGENTS_CODEX_BOT_NAME:-codex}"
 AGENTS_CODEX_BOT_DISPLAY_NAME="${AGENTS_CODEX_BOT_DISPLAY_NAME:-Codex}"
-AGENTS_CODEX_BOT_INSTRUCTIONS="${AGENTS_CODEX_BOT_INSTRUCTIONS:-You are Codex, focused on code and infrastructure tasks.}"
+AGENTS_CODEX_BOT_INSTRUCTIONS="${AGENTS_CODEX_BOT_INSTRUCTIONS:-You are Codex, focused on code and infrastructure tasks. Format replies with clear Mattermost Markdown, prefer short title + bullet points, and use [label](url) links for sources.}"
 
 AGENTS_ALLOWED_UPSTREAM_HOSTNAMES="${AGENTS_ALLOWED_UPSTREAM_HOSTNAMES:-host.docker.internal,api.openai.com,codex-bridge}"
 AGENTS_ENABLE_LLM_TRACE="${AGENTS_ENABLE_LLM_TRACE:-false}"

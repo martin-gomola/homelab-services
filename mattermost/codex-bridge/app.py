@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import subprocess
 import tempfile
 import time
@@ -93,6 +94,38 @@ def extract_content_text(content: Any) -> str:
     return json.dumps(content, ensure_ascii=False)
 
 
+def normalize_mattermost_markdown(text: str) -> str:
+    # Normalize common raw citation style: (site : https://url) -> ([site](https://url))
+    text = re.sub(
+        r"\(([^()\n:]{2,80})\s*:\s*(https?://[^\s)]+)\)",
+        r"([\1](\2))",
+        text,
+    )
+    normalized_lines: list[str] = []
+    for line in text.splitlines():
+        source_match = re.match(
+            r"^\s*(?:[-*•]\s*)?(.{2,140}?)\s*:\s*(https?://\S+)\s*$",
+            line,
+        )
+        if source_match:
+            label = source_match.group(1).strip().rstrip(":")
+            url = source_match.group(2).rstrip(".,;")
+            normalized_lines.append(f"- [{label}]({url})")
+            continue
+
+        bare_url_match = re.match(r"^\s*(?:[-*•]\s*)?(https?://\S+)\s*$", line)
+        if bare_url_match:
+            url = bare_url_match.group(1).rstrip(".,;")
+            normalized_lines.append(f"- [Source]({url})")
+            continue
+
+        normalized_lines.append(line)
+
+    text = "\n".join(normalized_lines)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
+
+
 def build_codex_task(messages: list[ChatMessage]) -> str:
     if not messages:
         raise HTTPException(
@@ -119,7 +152,13 @@ def build_codex_task(messages: list[ChatMessage]) -> str:
 
     sections = [
         "You are answering inside Mattermost chat.",
-        "Reply with plain text, concise and useful.",
+        "Format replies using Mattermost Markdown for readability.",
+        "Prefer this structure for non-trivial answers:",
+        "- First line: short title.",
+        "- Then concise bullet points.",
+        "- Put sources in a final 'Sources' list as [label](url).",
+        "Never emit raw citation format like '(site : https://example.com)'.",
+        "Keep replies concise unless the user asks for detail.",
     ]
     if system_lines:
         sections.extend(["", "System instructions:", "\n\n".join(system_lines)])
@@ -205,7 +244,7 @@ def run_codex(task: str, model: str, timeout_seconds: int) -> str:
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="Codex returned an empty response",
         )
-    return response
+    return normalize_mattermost_markdown(response)
 
 
 def completion_payload(model: str, message: str, completion_id: str, created: int) -> dict[str, Any]:
