@@ -28,18 +28,13 @@ nano .env
 docker-compose up -d
 ```
 
-## AI Collaboration Bundle (Mattermost + Open WebUI)
+## AI Platform
 
-For a shared team chat + AI workspace package:
+The AI stack (Mattermost + Open WebUI + Ollama + Codex) lives in its own repo:
 
-1. Deploy Mattermost (`chat.yourdomain.com`) from `mattermost/`.
-2. Deploy Open WebUI (`ai.yourdomain.com`) from `open-webui/`.
-3. Keep Codex path/timeouts aligned in both `.env` files:
-`CODEX_CONFIG_DIR`, `CODEX_WORKSPACE_DIR`, `CODEX_TIMEOUT_SECONDS`, `CODEX_MAX_TIMEOUT_SECONDS`.
+**[mythosaur-ai](https://github.com/martin-gomola/mythosaur-ai)** — self-hosted AI infrastructure with zero cloud API keys.
 
-See service docs:
-- `mattermost/README.md`
-- `open-webui/README.md`
+The `mattermost/` and `open-webui/` directories in this repo remain as standalone service definitions. For the unified AI platform with shared networking, Ollama, and Codex gateway, use mythosaur-ai instead.
 
 ## Makefile Commands
 
@@ -86,5 +81,11 @@ sudo chown -R 1000:1000 /srv/docker/<service>/
 chown -R $(whoami):staff ~/srv/docker/<service>/
 ```
 
+## Related
+
+- [pi-commander](https://github.com/martin-gomola/pi-commander) — Core infrastructure (reverse proxy, DNS, VPN, DDNS)
+- [mythosaur-ai](https://github.com/martin-gomola/mythosaur-ai) — Self-hosted AI platform (Ollama, Mattermost, Codex, Open WebUI)
+
 ---
-[pi-commander](https://github.com/martin-gomola/pi-commander) | MIT License
+
+MIT License
