@@ -97,7 +97,7 @@ docker exec affine_postgres psql -U affine -d affinedb -c \
 **Automated backup (cron):**
 ```bash
 # Add to crontab - daily at 3 AM
-0 3 * * * /home/matie/homelab-services/affine/backup-db.sh >> /srv/backups/affine/backup.log 2>&1
+0 3 * * * /path/to/homelab-services/affine/backup-db.sh >> /srv/backups/affine/backup.log 2>&1
 ```
 
 **Manual backup/restore:**

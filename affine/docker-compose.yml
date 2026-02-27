@@ -102,7 +102,7 @@ services:
       - RELAYHOST=${SMTP_RELAY_HOST:-smtp.gmail.com}:${SMTP_RELAY_PORT:-587}
       - RELAYHOST_USERNAME=${MAILER_USER}
       - RELAYHOST_PASSWORD=${MAILER_PASSWORD}
-      - ALLOWED_SENDER_DOMAINS=${MAIL_DOMAIN:-martingomola.com}
+      - ALLOWED_SENDER_DOMAINS=${MAIL_DOMAIN:-example.com}
     logging:
       driver: "json-file"
       options:
