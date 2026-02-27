@@ -12,9 +12,22 @@ When running Enterprise Edition, an Entry license can be auto-applied.
 ## Start / Update
 
 ```bash
-cd /Users/mgomola/dev/homelab-services/mattermost
+cd /path/to/homelab-services/mattermost
 docker compose --env-file .env up -d --build
 ```
+
+## Websocket/CORS (Mobile Reliability)
+
+To avoid "server unreachable" on mobile while desktop/web works, keep:
+
+```dotenv
+MM_SITE_URL=https://chat.yourdomain.com
+MM_WEBSOCKET_URL=wss://chat.yourdomain.com
+MM_ALLOW_CORS_FROM=*
+```
+
+Reason: some mobile websocket requests use origins that do not match a strict
+`https://...` allowlist, which can block `/api/v4/websocket`.
 
 ## Bootstrap Agents Config
 
@@ -27,7 +40,7 @@ It configures:
 Run:
 
 ```bash
-cd /Users/mgomola/dev/homelab-services/mattermost
+cd /path/to/homelab-services/mattermost
 chmod +x ./configure-agents.sh
 ./configure-agents.sh
 ```
