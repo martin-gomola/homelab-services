@@ -1,2 +1,0 @@
-"""Codex bridge package."""
-

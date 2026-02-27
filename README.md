@@ -15,8 +15,6 @@ Docker Compose stacks for self-hosted applications. Works with [pi-commander](ht
 | **Stirling PDF** | 8080 | pdf.domain.com | Stateless |
 | **Grocy** | 9283 | grocy.domain.com | Default login: admin/admin |
 | **Uptime Kuma** | 3006 | uptime.domain.com | Monitoring & status page |
-| **Mattermost** | 8065 | chat.domain.com | Team collaboration (Slack alternative) |
-| **Open WebUI** | 3040 | ai.domain.com | Chat UI for Ollama (native) |
 | **Umami** | 3025 | stats.domain.com | Lightweight analytics (PostgreSQL only) |
 
 ## Quick Start
@@ -30,11 +28,9 @@ docker-compose up -d
 
 ## AI Platform
 
-The AI stack (Mattermost + Open WebUI + Ollama + Codex) lives in its own repo:
+The AI stack (Mattermost + Open WebUI + Ollama + Codex) has been migrated to its own repo:
 
 **[mythosaur-ai](https://github.com/martin-gomola/mythosaur-ai)** — self-hosted AI infrastructure with zero cloud API keys.
-
-The `mattermost/` and `open-webui/` directories in this repo remain as standalone service definitions. For the unified AI platform with shared networking, Ollama, and Codex gateway, use mythosaur-ai instead.
 
 ## Makefile Commands
 
