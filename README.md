@@ -28,6 +28,19 @@ nano .env
 docker-compose up -d
 ```
 
+## AI Collaboration Bundle (Mattermost + Open WebUI)
+
+For a shared team chat + AI workspace package:
+
+1. Deploy Mattermost (`chat.yourdomain.com`) from `mattermost/`.
+2. Deploy Open WebUI (`ai.yourdomain.com`) from `open-webui/`.
+3. Keep Codex path/timeouts aligned in both `.env` files:
+`CODEX_CONFIG_DIR`, `CODEX_WORKSPACE_DIR`, `CODEX_TIMEOUT_SECONDS`, `CODEX_MAX_TIMEOUT_SECONDS`.
+
+See service docs:
+- `mattermost/README.md`
+- `open-webui/README.md`
+
 ## Makefile Commands
 
 ```bash

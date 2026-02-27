@@ -73,7 +73,7 @@ services:
       - CODEX_DISABLE_CONTEXT7=${CODEX_DISABLE_CONTEXT7:-true}
     volumes:
       - ${CODEX_CONFIG_DIR:-/srv/docker/ollama/codex-config}:/home/codex/.codex
-      - ${CODEX_WORKSPACE_DIR:-/Users/yourusername/dev/homelab-services}:/workspace:ro
+      - ${CODEX_WORKSPACE_DIR:-/srv/docker/workspace}:/workspace:ro
     mem_limit: ${CODEX_GATEWAY_MEM_LIMIT:-512m}
     mem_reservation: ${CODEX_GATEWAY_MEM_RESERVATION:-128m}
     restart: unless-stopped
