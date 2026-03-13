@@ -34,6 +34,8 @@ services:
   mosquitto:
     image: eclipse-mosquitto:2
     container_name: mosquitto
+    env_file:
+      - .env
     ports:
       - "${MQTT_PORT:-1883}:1883"
     volumes:
@@ -42,7 +44,7 @@ services:
       - ${DATA_DIR:-/srv/docker}/homeassistant/mosquitto/log:/mosquitto/log
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "mosquitto_sub", "-t", "$$SYS/#", "-C", "1", "-i", "healthcheck", "-W", "3"]
+      test: ["CMD", "sh", "-c", "mosquitto_pub -h localhost -p 1883 -t healthcheck -m ok -u \"$$MQTT_USER\" -P \"$$MQTT_PASSWORD\""]
       interval: 30s
       timeout: 10s
       retries: 3

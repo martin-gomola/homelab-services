@@ -41,21 +41,51 @@ echo "  -> MQTT user '${MQTT_USER}' configured"
 echo "[4/4] Configuring Zigbee2MQTT..."
 if [ ! -f "${HA_DIR}/zigbee2mqtt/configuration.yaml" ]; then
   cp "${SCRIPT_DIR}/zigbee2mqtt/configuration.yaml" "${HA_DIR}/zigbee2mqtt/configuration.yaml"
+  echo "  -> configuration.yaml created"
+fi
 
-  # Update adapter IP if using network mode
-  if [ "${ZIGBEE_CONNECTION_MODE:-network}" = "network" ]; then
-    DONGLE_IP="${SONOFF_DONGLE_IP:?SONOFF_DONGLE_IP must be set in .env for network mode}"
-    DONGLE_PORT="${SONOFF_DONGLE_PORT:-6638}"
-    sed -i.bak "s|tcp://192.168.1.100:6638|tcp://${DONGLE_IP}:${DONGLE_PORT}|" \
-      "${HA_DIR}/zigbee2mqtt/configuration.yaml"
-    rm -f "${HA_DIR}/zigbee2mqtt/configuration.yaml.bak"
-    echo "  -> Network mode: tcp://${DONGLE_IP}:${DONGLE_PORT}"
-  else
-    echo "  -> USB mode: ${ZIGBEE_DEVICE:-/dev/ttyACM0}"
-    echo "  NOTE: Uncomment 'devices' in docker-compose.yml and switch serial config"
-  fi
+# Update adapter IP if using network mode
+if [ "${ZIGBEE_CONNECTION_MODE:-network}" = "network" ]; then
+  DONGLE_IP="${SONOFF_DONGLE_IP:?SONOFF_DONGLE_IP must be set in .env for network mode}"
+  DONGLE_PORT="${SONOFF_DONGLE_PORT:-6638}"
+  python3 - <<'PY' "${HA_DIR}/zigbee2mqtt/configuration.yaml" "${DONGLE_IP}" "${DONGLE_PORT}"
+import re
+import sys
+from pathlib import Path
+
+config_path = Path(sys.argv[1])
+dongle_ip = sys.argv[2]
+dongle_port = sys.argv[3]
+text = config_path.read_text()
+
+serial_match = re.search(r"^serial:\n(?P<body>(?:^[ \t].*\n?)*)", text, re.MULTILINE)
+if not serial_match:
+    raise SystemExit("Could not find 'serial:' block in Zigbee2MQTT configuration")
+
+body = serial_match.group("body")
+port_line = f"  port: tcp://{dongle_ip}:{dongle_port}"
+
+if re.search(r"^[ \t]*port:\s*.*$", body, re.MULTILINE):
+    body = re.sub(r"^[ \t]*port:\s*.*$", port_line, body, count=1, flags=re.MULTILINE)
+elif re.search(r"^[ \t]*#\s*port:\s*tcp://.*$", body, re.MULTILINE):
+    body = re.sub(r"^[ \t]*#\s*port:\s*tcp://.*$", port_line, body, count=1, flags=re.MULTILINE)
+else:
+    body = f"  port: tcp://{dongle_ip}:{dongle_port}\n" + body
+
+if re.search(r"^[ \t]*adapter:\s*.*$", body, re.MULTILINE):
+    body = re.sub(r"^[ \t]*adapter:\s*.*$", "  adapter: ember", body, count=1, flags=re.MULTILINE)
+elif re.search(r"^[ \t]*#\s*adapter:\s*.*$", body, re.MULTILINE):
+    body = re.sub(r"^[ \t]*#\s*adapter:\s*.*$", "  adapter: ember", body, count=1, flags=re.MULTILINE)
+else:
+    body = "  adapter: ember\n" + body
+
+updated = text[:serial_match.start("body")] + body + text[serial_match.end("body"):]
+config_path.write_text(updated)
+PY
+  echo "  -> Network mode: tcp://${DONGLE_IP}:${DONGLE_PORT}"
 else
-  echo "  -> configuration.yaml already exists, skipping"
+  echo "  -> USB mode: ${ZIGBEE_DEVICE:-/dev/ttyACM0}"
+  echo "  NOTE: Uncomment 'devices' in docker-compose.yml and switch serial config"
 fi
 
 # Write Z2M secrets
@@ -69,12 +99,13 @@ echo ""
 echo "=== Setup Complete ==="
 echo ""
 echo "Next steps:"
-echo "  1. Review configs in ${HA_DIR}/"
-echo "  2. Run: cd ${SCRIPT_DIR} && docker compose up -d"
-echo "  3. Open Home Assistant: http://your-server:${HA_PORT:-8123}"
-echo "  4. Open Zigbee2MQTT UI: http://your-server:${Z2M_PORT:-8099}"
+echo "  1. Run: cd ${SCRIPT_DIR} && make up"
+echo "     or: cd ${SCRIPT_DIR} && docker compose up -d"
+echo "  2. Review configs in ${HA_DIR}/ if needed"
+echo "  3. Open Home Assistant: http://localhost:${HA_PORT:-8123}"
+echo "  4. Open Zigbee2MQTT UI: http://localhost:${Z2M_PORT:-8099}"
 echo "  5. In HA, add MQTT integration (Settings > Integrations > MQTT)"
-echo "     - Broker: mosquitto"
+echo "     - Broker: localhost"
 echo "     - Port: 1883"
 echo "     - User/Pass: from your .env"
 echo ""
