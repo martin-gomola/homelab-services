@@ -1,169 +1,390 @@
 # Home Assistant + Zigbee2MQTT
 
-Smart home automation stack for Zigbee and Wi-Fi devices.
+Beginner-friendly smart home stack with:
 
-## Architecture
+- Home Assistant for automations and dashboards
+- Mosquitto as the MQTT broker
+- Zigbee2MQTT for Zigbee devices
+- SONOFF Dongle Max as the Zigbee coordinator
 
+## What You Get
+
+| Service | URL | Purpose |
+|---------|-----|---------|
+| Home Assistant | `http://localhost:8123` | Main smart home UI |
+| Zigbee2MQTT | `http://localhost:8099` | Pair and manage Zigbee devices |
+| Mosquitto | `localhost:1883` | MQTT broker for HA and Zigbee2MQTT |
+
+## Before You Start
+
+You need:
+
+- Docker and Docker Compose
+- A `.env` file in this folder
+- A SONOFF Dongle Max
+
+Recommended:
+
+- Use the dongle in `network` mode
+- On macOS, use `network` mode, not USB passthrough to Docker
+
+## Quick Start
+
+### 1. Put the SONOFF dongle on your network
+
+This is the easiest path and the recommended one for Docker.
+
+1. Connect to the dongle using the SONOFF web UI
+2. Join it to your Wi-Fi or Ethernet network
+3. Note its IP address
+
+Example:
+
+```text
+192.168.1.201
 ```
-Zigbee Devices ─── SONOFF Dongle Max ─── Zigbee2MQTT ─── Mosquitto (MQTT) ─── Home Assistant
-  (sensors)         (coordinator)          :8099            :1883           │     :8123
-                                                                           │
-Wi-Fi Devices ─────────────────── Local Network (mDNS/SSDP) ──────────────┘
-  (switches, lights)
-```
 
-Home Assistant runs with `network_mode: host` so it can discover Wi-Fi devices on your LAN via mDNS and SSDP.
+The dongle usually exposes the coordinator port on `6638`.
 
-## Services
-
-| Service | Port | Purpose |
-|---------|------|---------|
-| Home Assistant | 8123 | Automation dashboard & rules (host network) |
-| Zigbee2MQTT | 8099 | Zigbee device management UI |
-| Mosquitto | 1883 | MQTT message broker |
-
-## Hardware & Devices
-
-| Device | Protocol | Integration |
-|--------|----------|-------------|
-| SONOFF Dongle Max (EFR32MG21) | Zigbee 3.0 | Zigbee2MQTT coordinator |
-| Tuya Soil Moisture Sensor | Zigbee | Zigbee2MQTT → MQTT auto-discovery |
-| Wi-Fi Light Switches | Wi-Fi | Tuya (built-in) or LocalTuya (HACS) |
-| Xiaomi Light Strip | Wi-Fi | Yeelight or Xiaomi Miio (built-in) |
-
-## Setup
-
-### 1. Configure environment
+### 2. Create `.env`
 
 ```bash
 cp .env.example .env
-nano .env
 ```
 
-Set your `MQTT_PASSWORD` (generate with `openssl rand -base64 32`) and configure the SONOFF Dongle connection.
+Edit `.env` and set at least these values:
 
-### 2. SONOFF Dongle Max Connection
-
-The dongle supports three connection modes:
-
-#### Network Mode (Ethernet PoE / Wi-Fi) — Recommended for Docker
-
-Set in `.env`:
 ```bash
+TZ=Europe/Bratislava
+DATA_DIR=$HOME/srv/docker
+
+MQTT_USER=mqtt
+MQTT_PASSWORD=generate_a_real_password
+
 ZIGBEE_CONNECTION_MODE=network
-SONOFF_DONGLE_IP=192.168.1.100   # Your dongle's IP
+SONOFF_DONGLE_IP=192.168.1.201
 SONOFF_DONGLE_PORT=6638
+
+HA_URL=https://my.home.martingomola.com
+HOME_ASSISTANT_ACCESS_TOKEN=replace-with-your-long-lived-access-token
 ```
 
-To find your dongle's IP:
-- Check your router's DHCP client list
-- Use the eWeLink/SONOFF app
-- Run `nmap -sP 192.168.1.0/24` and look for the dongle
+Generate a password with:
 
-#### USB Mode
-
-Set in `.env`:
 ```bash
-ZIGBEE_CONNECTION_MODE=usb
-ZIGBEE_DEVICE=/dev/ttyACM0
+openssl rand -base64 32
 ```
 
-Find the device path:
+### 3. Start the stack
+
+From this folder:
+
 ```bash
-ls -la /dev/ttyACM* /dev/ttyUSB*
-# or
-dmesg | grep tty
+make up
 ```
 
-Then uncomment the `devices` section in `docker-compose.yml`:
-```yaml
-zigbee2mqtt:
-  devices:
-    - ${ZIGBEE_DEVICE:-/dev/ttyACM0}:/dev/ttyACM0
+What `make up` does:
+
+1. Creates the data folders
+2. Generates the MQTT password file
+3. Updates Zigbee2MQTT config from `.env`
+4. Starts the containers
+
+### 4. Open the apps
+
+- Home Assistant: `http://localhost:8123`
+- Zigbee2MQTT: `http://localhost:8099`
+
+If you are running this on another machine, replace `localhost` with that machine's IP or hostname.
+
+### 5. Finish first-time Home Assistant setup
+
+1. Open Home Assistant
+2. Create your admin account
+3. Go to `Settings -> Devices & Services`
+4. Add the `MQTT` integration
+
+Use:
+
+- Broker: `localhost`
+- Port: `1883`
+- Username: value from `.env`
+- Password: value from `.env`
+
+Why `localhost`?
+
+Home Assistant runs with host networking in this stack, so it reaches Mosquitto through the host port.
+
+Important:
+
+- Use the `MQTT` integration for Zigbee2MQTT devices in this stack
+- Do not add `Zigbee Home Automation (ZHA)` unless you plan to stop using Zigbee2MQTT entirely
+- The SONOFF dongle web UI may show its own `MQTT` page, but that is not needed for this setup
+
+### 6. Pair your first Zigbee device
+
+1. Open Zigbee2MQTT
+2. Click `Permit join`
+3. Put your Zigbee device into pairing mode
+4. Wait for it to appear in Zigbee2MQTT
+5. It should then appear automatically in Home Assistant through MQTT discovery
+
+Notes:
+
+- If a device appears in Zigbee2MQTT but not in Home Assistant, check that the `MQTT` integration is loaded
+- Rename Zigbee devices in Zigbee2MQTT first if you want cleaner entity names in Home Assistant
+
+### 7. Configure Home Assistant basics
+
+Recommended after first boot:
+
+1. Set Home Assistant units to `metric` if you want temperatures in `°C`
+2. Create Home Assistant `areas` that match your flat, for example:
+   - `Living Room`
+   - `Kitchen`
+   - `Bedroom`
+   - `Bathroom`
+3. Assign devices to areas so dashboards and floorplans are easier to build
+
+### 8. Configure Wi-Fi devices
+
+Wi-Fi devices usually need their vendor app first before Home Assistant can use them reliably.
+
+#### Tuya / Smart Life devices
+
+Examples:
+
+- smart plugs
+- smart switches
+- some humidifiers
+
+Recommended flow:
+
+1. Pair the device in the `Smart Life` app
+2. Confirm it works on your Wi-Fi
+3. Add the `Tuya` integration in Home Assistant
+
+#### Yeelight devices
+
+Examples:
+
+- Yeelight strip
+- Yeelight bulbs
+
+Recommended flow:
+
+1. Pair the device in the `Yeelight` app
+2. Enable `LAN control`
+3. Add the `Yeelight` integration in Home Assistant
+
+Do not pair Yeelight devices in `Smart Life` unless the device specifically requires it.
+
+#### Xiaomi / Mi Home devices
+
+Recommended flow:
+
+1. Pair the device in the `Xiaomi Home` / `Mi Home` app
+2. Add the matching Home Assistant integration later if needed
+
+If the device is actually Yeelight-branded, use the `Yeelight` app instead.
+
+### 9. TV integration
+
+Samsung TVs are often auto-discovered by Home Assistant through the built-in `samsungtv` integration.
+
+If your TV appears automatically:
+
+- keep the discovered integration
+- use `media_player` and `remote` entities for useful dashboard controls
+- common source shortcuts are `TV`, `HDMI`, `Apple TV`, `Netflix`, `YouTube`, and `Spotify`
+
+### 10. Dashboards
+
+Good next dashboards to create:
+
+- a simple `TV` dashboard with media controls and source buttons
+- a `Plant Sensor` dashboard for humidity, soil moisture, fertility, and battery
+- a floorplan dashboard using an image in `/config/www/`
+
+For a floorplan image, place it in:
+
+```text
+/config/www/floorplan.png
 ```
 
-### 3. Run setup and deploy
+Then reference it in Lovelace as:
+
+```text
+/local/floorplan.png
+```
+
+## Common Commands
+
+Run these from this folder:
+
+```bash
+make up        # Configure and start everything
+make down      # Stop everything
+make restart   # Restart containers
+make logs      # Follow logs
+make ps        # Show container status
+make setup     # Regenerate runtime config from .env
+make codex-mcp-install   # Register Home Assistant MCP in local Codex
+```
+
+Manual equivalent of `make up`:
 
 ```bash
 ./setup.sh
 docker compose up -d
 ```
 
-### 4. Initial configuration
+## Codex MCP
 
-1. **Home Assistant** — Open `http://your-server:8123`, create your account
-2. **MQTT Integration** — Settings > Integrations > Add > MQTT
-   - Broker: `localhost` (HA uses host networking, Mosquitto maps port 1883 to host)
-   - Port: `1883`
-   - Username/Password: from your `.env`
-3. **Zigbee2MQTT** — Open `http://your-server:8099`
-   - Verify the coordinator is connected (green status)
+If you want Codex CLI to manage Home Assistant through MCP, install the server into your
+machine-local Codex config from this folder:
 
-### 5. Pair Zigbee devices (soil moisture sensor)
+```bash
+make codex-mcp-install
+```
 
-1. In Zigbee2MQTT UI, click "Permit Join" (top right)
-2. Put your Tuya sensor in pairing mode (hold reset button ~5 seconds until LED blinks)
-3. The sensor should appear in Z2M within 60 seconds
-4. It will auto-discover in Home Assistant via MQTT
+What this does:
 
-### 6. Add Wi-Fi light switches (Tuya)
+1. Reads `HA_URL` from `.env`
+2. Reads `HOME_ASSISTANT_ACCESS_TOKEN` from your local `.env`
+3. Derives the MCP endpoint as `HA_URL + /api/mcp`
+4. Registers a local `home_assistant` MCP server in `~/.codex/config.toml`
+5. Syncs the token into Codex's `shell_environment_policy.set`, so you do not need to export it manually each time
 
-Two options for Tuya Wi-Fi switches — choose one:
+After that, `codex mcp get home_assistant` should show the registered server.
 
-#### Option A: Tuya Cloud Integration (easier setup)
+## If You Change `.env` Later
 
-1. Create a free account at [Tuya IoT Platform](https://iot.tuya.com/)
-2. Create a Cloud Project (select your data center region)
-3. Link your Tuya/Smart Life app account under "Link Tuya App Account"
-4. In HA: Settings > Integrations > Add > **Tuya**
-5. Enter your Tuya IoT credentials and authorize
+After changing:
 
-#### Option B: LocalTuya via HACS (fully local, no cloud)
+- `SONOFF_DONGLE_IP`
+- `MQTT_PASSWORD`
+- `HA_URL`
+- ports
 
-1. Install HACS in Home Assistant (see [hacs.xyz](https://hacs.xyz/))
-2. In HACS: search and install **LocalTuya**
-3. Get your device keys using one of:
-   - Tuya IoT Platform (API Explorer → Get Device Info)
-   - `tinytuya` CLI: `pip install tinytuya && python -m tinytuya wizard`
-4. In HA: Settings > Integrations > Add > **LocalTuya** > enter device IP and local key
+run:
 
-### 7. Add Xiaomi Light Strip
+```bash
+make up
+```
 
-The Xiaomi Wi-Fi light strip should be auto-discovered. If not:
+That will re-apply the generated runtime config and restart the stack.
 
-#### Yeelight Strip
+## macOS Notes
 
-1. In the Yeelight/Mi Home app, enable **LAN Control** for the strip
-2. HA should auto-discover it — check Settings > Integrations
-3. If not found: Settings > Integrations > Add > **Yeelight** > enter the strip's IP
+If you are running Docker on macOS:
 
-#### Xiaomi Miio (Mi Smart LED Strip)
+- prefer `ZIGBEE_CONNECTION_MODE=network`
+- do not rely on USB passthrough to the container
 
-1. Get the device token using `miio` CLI or from Mi Home app logs
-2. In HA: Settings > Integrations > Add > **Xiaomi Miio** > enter IP and token
+The dongle can still be connected to your Mac by USB for initial setup, firmware, or web access, while Zigbee2MQTT talks to it over the network.
 
-#### Xiaomi Miot Auto via HACS (most comprehensive)
+## USB Mode
 
-1. Install HACS, then search for **Xiaomi Miot Auto**
-2. Add integration with your Xiaomi account credentials
-3. All linked Xiaomi devices will be imported
+Use USB mode only if your Docker host can pass serial devices into containers reliably, such as a Linux machine.
 
-## Sensor Data
+In `.env`:
 
-The Tuya Zigbee Soil Moisture Sensor exposes:
+```bash
+ZIGBEE_CONNECTION_MODE=usb
+ZIGBEE_DEVICE=/dev/ttyACM0
+```
 
-| Entity | Type | Unit | Description |
-|--------|------|------|-------------|
-| `soil_moisture` | sensor | % | Soil moisture level |
-| `temperature` | sensor | °C | Soil/ambient temperature |
-| `humidity` | sensor | % | Ambient humidity |
-| `illuminance_lux` | sensor | lx | Light intensity |
-| `soil_ec` | sensor | µS/cm | Soil fertility (conductivity) |
-| `battery` | sensor | % | Battery level |
+Then update `docker-compose.yml` to uncomment the `devices:` mapping for `zigbee2mqtt`.
 
-## Garden Automation Example
+## Troubleshooting
 
-After pairing, create automations in Home Assistant. Example `automations.yaml`:
+### Check container status
+
+```bash
+make ps
+```
+
+### Follow logs
+
+```bash
+make logs
+docker compose logs -f zigbee2mqtt
+docker compose logs -f homeassistant
+docker compose logs -f mosquitto
+```
+
+### Check the SONOFF network port
+
+```bash
+nc -zv 192.168.1.201 6638
+```
+
+If it succeeds, Zigbee2MQTT should be able to reach the coordinator.
+
+### Zigbee2MQTT does not connect
+
+Check:
+
+- `SONOFF_DONGLE_IP` is correct
+- port `6638` is reachable
+- the dongle is still in Zigbee Coordinator mode
+
+### Home Assistant cannot connect to MQTT
+
+Use:
+
+- broker `localhost`
+- port `1883`
+
+Do not use `mosquitto` as the broker hostname inside Home Assistant for this stack.
+
+### ZHA shows `Could not form a new Zigbee network`
+
+This usually means ZHA is trying to grab the coordinator while Zigbee2MQTT is already using it.
+
+For this stack:
+
+- keep Zigbee2MQTT
+- keep the `MQTT` integration
+- do not configure `ZHA`
+
+## Optional Device Integrations
+
+### Tuya Wi-Fi switches
+
+Simplest path:
+
+1. In Home Assistant, add the `Tuya` integration
+2. Sign in with your Tuya or Smart Life account
+
+Local-only path:
+
+1. Install HACS
+2. Install `LocalTuya`
+3. Add each device using its IP and local key
+
+### Xiaomi light strip
+
+Try built-in discovery first. If it does not show up:
+
+1. Enable LAN control in the vendor app
+2. Add `Yeelight` or `Xiaomi Miio` in Home Assistant
+
+## Tuya Soil Sensor Data
+
+Typical entities from the Tuya Zigbee soil sensor:
+
+| Entity | Unit |
+|--------|------|
+| `soil_moisture` | `%` |
+| `temperature` | `degC` |
+| `humidity` | `%` |
+| `illuminance_lux` | `lx` |
+| `soil_ec` | `uS/cm` |
+| `battery` | `%` |
+
+## Example Automation
 
 ```yaml
 - alias: "Water garden when soil is dry"
@@ -186,129 +407,27 @@ After pairing, create automations in Home Assistant. Example `automations.yaml`:
     - service: switch.turn_off
       target:
         entity_id: switch.garden_irrigation_valve
-    - service: notify.notify
-      data:
-        title: "Garden Watered"
-        message: "Soil moisture was {{ trigger.to_state.state }}%. Watered for 15 min."
 ```
 
-## Troubleshooting
+## MCP Server
 
-### Logs
+If you want AI tools such as Cursor to control Home Assistant:
 
-```bash
-docker compose logs -f                    # All services
-docker compose logs -f zigbee2mqtt        # Z2M only
-docker compose logs -f homeassistant      # HA only
+1. In Home Assistant, add the `Model Context Protocol Server` integration
+2. Create a long-lived access token in your profile
+3. Point your MCP client to:
+
+```text
+https://your-ha-url/api/mcp
 ```
 
-### MQTT
-
-```bash
-# Verify broker is reachable
-docker exec mosquitto mosquitto_sub -t 'zigbee2mqtt/#' -u mqtt -P 'your_password' -v
-
-# Test from HA container (host network → localhost)
-curl -s http://localhost:8123/api/ | head
-```
-
-### Zigbee
-
-```bash
-# Check dongle reachability (network mode)
-nc -zv 192.168.1.100 6638
-
-# Check USB device (USB mode)
-ls -la /dev/ttyACM* /dev/ttyUSB*
-
-# Restart Z2M after config changes
-docker compose restart zigbee2mqtt
-```
-
-### Wi-Fi Devices
-
-```bash
-# Check if HA can see mDNS traffic (host network verification)
-docker exec homeassistant ip addr show
-
-# Ping a Wi-Fi device from the server
-ping 192.168.1.xxx
-
-# Scan for Yeelight/Xiaomi devices
-nmap -sP 192.168.1.0/24 | grep -i -A1 "xiaomi\|yeelight\|tuya\|espressif"
-
-# Check Yeelight LAN control (port 55443)
-nc -zv <yeelight-ip> 55443
-```
-
-### Common Issues
-
-| Problem | Solution |
-|---------|----------|
-| HA can't discover Wi-Fi devices | Verify `network_mode: host` is set; check firewall allows mDNS (port 5353 UDP) |
-| MQTT connection refused in HA | Use `localhost` as broker (not `mosquitto`) since HA is on host network |
-| Tuya devices unavailable | Check Tuya Cloud project is active; for LocalTuya verify local keys haven't rotated |
-| Xiaomi strip not found | Enable LAN Control in Yeelight/Mi Home app; ensure same VLAN as server |
-
-## MCP Server (AI Control)
-
-The official [HA MCP Server integration](https://www.home-assistant.io/integrations/mcp_server/) lets Cursor/Claude control Home Assistant directly -- check sensors, toggle lights, manage automations.
-
-### 1. Enable MCP Server in Home Assistant
-
-After HA is running:
-1. Go to **Settings > Devices & Services > Add Integration**
-2. Search for **Model Context Protocol Server**
-3. Enable **Control Home Assistant** option
-4. Go to **Settings > Voice Assistants > Expose** tab and select which entities the AI can access
-
-### 2. Generate a Long-Lived Access Token
-
-1. In HA, click your profile (bottom-left)
-2. Go to **Security** tab
-3. Under **Long-Lived Access Tokens**, click **Create Token**
-4. Name it `cursor-mcp` and copy the token
-
-### 3. Configure Cursor
-
-The MCP proxy gateway and Cursor config are pre-installed. Update the token:
-
-Edit `~/.cursor/mcp.json` and replace the placeholder in the `Home Assistant` entry:
-
-```json
-{
-  "Home Assistant": {
-    "command": "mcp-proxy",
-    "args": [
-      "--transport=streamablehttp",
-      "--stateless",
-      "https://home.domain.com/api/mcp"
-    ],
-    "env": {
-      "API_ACCESS_TOKEN": "PASTE_YOUR_TOKEN_HERE"
-    }
-  }
-}
-```
-
-If `mcp-proxy` is not on your PATH, use the full path (e.g., `~/.local/bin/mcp-proxy`).
-Update the URL to match your `HA_URL` from `.env`.
-
-### 4. Verify
-
-Restart Cursor. In Settings > MCP, the Home Assistant server should show a green indicator. In agent mode, ask something like "what's the soil moisture level?" to confirm it works.
-
-### What the AI can do
-
-| Capability | Example |
-|------------|---------|
-| Read sensor states | "What's the garden soil moisture?" |
-| Control devices | "Turn on the living room lights" |
-| Manage automations | "Disable the garden watering automation" |
-| Check status | "Which devices are currently on?" |
+Use the `HA_URL` value from your `.env`.
 
 ## Proxy Setup
 
-Configure in Nginx Proxy Manager:
-- `home.domain.com` → `server-ip:8123` (enable WebSockets)
-- `zigbee.domain.com` → `server-ip:8099`
+Example reverse proxy targets:
+
+- `my.home.martingomola.com -> server:8123`
+- `zigbee.domain.com -> server:8099`
+
+Enable WebSockets for Home Assistant if your proxy requires that setting.
