@@ -1,0 +1,37 @@
+homeassistant: true
+permit_join: false
+
+mqtt:
+  base_topic: zigbee2mqtt
+  server: mqtt://mosquitto:1883
+  user: '!secret mqtt_user'
+  password: '!secret mqtt_password'
+
+serial:
+  # --- Network mode (SONOFF Dongle Max via Ethernet/Wi-Fi) ---
+  # Replace IP with your dongle's address from .env
+  port: tcp://192.168.1.100:6638
+  adapter: ember
+
+  # --- USB mode ---
+  # Comment out the network lines above and uncomment below:
+  # port: /dev/ttyACM0
+  # adapter: ember
+
+frontend:
+  port: 8080
+
+advanced:
+  homeassistant_legacy_entity_attributes: false
+  legacy_api: false
+  legacy_availability_payload: false
+  log_level: info
+  channel: 15
+  network_key: GENERATE
+  pan_id: GENERATE
+  ext_pan_id: GENERATE
+
+availability: true
+
+device_options:
+  legacy: false

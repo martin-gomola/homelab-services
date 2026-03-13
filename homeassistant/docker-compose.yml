@@ -1,0 +1,96 @@
+version: "3.8"
+services:
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: homeassistant
+    env_file:
+      - .env
+    network_mode: host
+    volumes:
+      - ${DATA_DIR:-/srv/docker}/homeassistant/config:/config
+      - ${DATA_DIR:-/srv/docker}/homeassistant/media:/media
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      TZ: ${TZ:-UTC}
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8123/manifest.json"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 10s
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: mosquitto
+    ports:
+      - "${MQTT_PORT:-1883}:1883"
+    volumes:
+      - ${DATA_DIR:-/srv/docker}/homeassistant/mosquitto/config:/mosquitto/config
+      - ${DATA_DIR:-/srv/docker}/homeassistant/mosquitto/data:/mosquitto/data
+      - ${DATA_DIR:-/srv/docker}/homeassistant/mosquitto/log:/mosquitto/log
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mosquitto_sub", "-t", "$$SYS/#", "-C", "1", "-i", "healthcheck", "-W", "3"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 10s
+    networks:
+      - homeassistant_network
+
+  zigbee2mqtt:
+    image: koenkk/zigbee2mqtt:latest
+    container_name: zigbee2mqtt
+    env_file:
+      - .env
+    ports:
+      - "${Z2M_PORT:-8099}:8080"
+    volumes:
+      - ${DATA_DIR:-/srv/docker}/homeassistant/zigbee2mqtt:/app/data
+      - /run/udev:/run/udev:ro
+    environment:
+      TZ: ${TZ:-UTC}
+    # --- SONOFF Dongle Max Connection ---
+    # USB mode: uncomment 'devices' below and comment out the TCP adapter in z2m config
+    # devices:
+    #   - ${ZIGBEE_DEVICE:-/dev/ttyACM0}:/dev/ttyACM0
+    # Network mode (Ethernet/Wi-Fi): use TCP adapter in z2m configuration.yaml
+    # No 'devices' section needed when using network connection
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 10s
+    networks:
+      - homeassistant_network
+
+networks:
+  homeassistant_network:
+    driver: bridge
