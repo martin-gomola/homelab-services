@@ -250,6 +250,63 @@ nc -zv <yeelight-ip> 55443
 | Tuya devices unavailable | Check Tuya Cloud project is active; for LocalTuya verify local keys haven't rotated |
 | Xiaomi strip not found | Enable LAN Control in Yeelight/Mi Home app; ensure same VLAN as server |
 
+## MCP Server (AI Control)
+
+The official [HA MCP Server integration](https://www.home-assistant.io/integrations/mcp_server/) lets Cursor/Claude control Home Assistant directly -- check sensors, toggle lights, manage automations.
+
+### 1. Enable MCP Server in Home Assistant
+
+After HA is running:
+1. Go to **Settings > Devices & Services > Add Integration**
+2. Search for **Model Context Protocol Server**
+3. Enable **Control Home Assistant** option
+4. Go to **Settings > Voice Assistants > Expose** tab and select which entities the AI can access
+
+### 2. Generate a Long-Lived Access Token
+
+1. In HA, click your profile (bottom-left)
+2. Go to **Security** tab
+3. Under **Long-Lived Access Tokens**, click **Create Token**
+4. Name it `cursor-mcp` and copy the token
+
+### 3. Configure Cursor
+
+The MCP proxy gateway and Cursor config are pre-installed. Update the token:
+
+Edit `~/.cursor/mcp.json` and replace the placeholder in the `Home Assistant` entry:
+
+```json
+{
+  "Home Assistant": {
+    "command": "mcp-proxy",
+    "args": [
+      "--transport=streamablehttp",
+      "--stateless",
+      "https://home.domain.com/api/mcp"
+    ],
+    "env": {
+      "API_ACCESS_TOKEN": "PASTE_YOUR_TOKEN_HERE"
+    }
+  }
+}
+```
+
+If `mcp-proxy` is not on your PATH, use the full path (e.g., `~/.local/bin/mcp-proxy`).
+Update the URL to match your `HA_URL` from `.env`.
+
+### 4. Verify
+
+Restart Cursor. In Settings > MCP, the Home Assistant server should show a green indicator. In agent mode, ask something like "what's the soil moisture level?" to confirm it works.
+
+### What the AI can do
+
+| Capability | Example |
+|------------|---------|
+| Read sensor states | "What's the garden soil moisture?" |
+| Control devices | "Turn on the living room lights" |
+| Manage automations | "Disable the garden watering automation" |
+| Check status | "Which devices are currently on?" |
+
 ## Proxy Setup
 
 Configure in Nginx Proxy Manager:
