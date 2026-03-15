@@ -2,6 +2,12 @@
 
 Docker Compose stacks for self-hosted applications. Works with [pi-commander](https://github.com/martin-gomola/pi-commander).
 
+This repo is the worker-services layer of the homelab. In the current split:
+
+- `pi-commander` stays the stable control plane on `192.168.1.190`
+- `homelab-services` runs on the Mac mini worker host `192.168.1.200`
+- `mythosaur-tools` is the shared MCP gateway for AI operations against Home Assistant, AdGuard, and other remote services
+
 ## Services
 
 | Service | Port | URL Pattern | Notes |
@@ -73,7 +79,8 @@ sudo chown -R 1000:1000 /srv/docker/<service>/
 | Repo | What it does |
 |------|--------------|
 | [pi-commander](https://github.com/martin-gomola/pi-commander) | Infrastructure — reverse proxy (NPM), DNS (AdGuard), VPN (Tailscale), DDNS (Cloudflare) |
-| [mythosaur-ai](https://github.com/martin-gomola/mythosaur-ai) | AI platform — Ollama, Mattermost, Codex, Open WebUI |
+| [mythosaur-ai](https://github.com/martin-gomola/mythosaur-ai) | Mattermost runtime — Grogu local operator bot and Mythosaur Codex-first planner |
+| [mythosaur-tools](https://github.com/martin-gomola/mythosaur-tools) | Shared MCP gateway — Home Assistant, AdGuard, pi-commander, Google, browser/search/fetch |
 | **homelab-services** (this repo) | Self-hosted applications |
 
 ---
