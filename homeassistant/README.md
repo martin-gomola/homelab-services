@@ -66,6 +66,8 @@ SONOFF_DONGLE_IP=192.168.1.201
 SONOFF_DONGLE_PORT=6638
 
 HA_URL=https://my.home.martingomola.com
+# Add the "Model Context Protocol Server" integration in the Home Assistant UI
+# before using Codex or Mythosaur against /api/mcp.
 HOME_ASSISTANT_ACCESS_TOKEN=replace-with-your-long-lived-access-token
 ```
 
@@ -184,7 +186,14 @@ Do not pair Yeelight devices in `Smart Life` unless the device specifically requ
 Recommended flow:
 
 1. Pair the device in the `Xiaomi Home` / `Mi Home` app
-2. Add the matching Home Assistant integration later if needed
+2. Install the `xiaomi_home` custom integration in Home Assistant
+3. Sign in with the same Xiaomi account and choose the matching cloud region
+
+Notes:
+
+- For Slovakia, use region `de` in the Xiaomi Home integration
+- The Xiaomi Home OAuth redirect must use your real Home Assistant URL, for example `https://my.home.martingomola.com`
+- `homeassistant.local` is often wrong in reverse-proxy setups and will break the Xiaomi callback flow
 
 If the device is actually Yeelight-branded, use the `Yeelight` app instead.
 
@@ -247,6 +256,10 @@ machine-local Codex config from this folder:
 ```bash
 make codex-mcp-install
 ```
+
+Before running that command, add the `Model Context Protocol Server` integration in the
+Home Assistant UI. The Docker setup in this repo starts Home Assistant, but it does not
+provision UI-managed integrations automatically.
 
 What this does:
 
@@ -371,6 +384,20 @@ Try built-in discovery first. If it does not show up:
 1. Enable LAN control in the vendor app
 2. Add `Yeelight` or `Xiaomi Miio` in Home Assistant
 
+### Xiaomi Home custom integration
+
+The newer Xiaomi Home account-based integration is not built into the base Home Assistant container in this stack. Install it as a custom component under:
+
+```text
+/config/custom_components/xiaomi_home
+```
+
+Important:
+
+- use your public HA URL for the OAuth redirect, not `http://homeassistant.local:8123`
+- for this setup, `https://my.home.martingomola.com` is the correct redirect base URL
+- after installing or updating the custom component, restart Home Assistant before adding the integration
+
 ## Tuya Soil Sensor Data
 
 Typical entities from the Tuya Zigbee soil sensor:
@@ -422,6 +449,9 @@ https://your-ha-url/api/mcp
 ```
 
 Use the `HA_URL` value from your `.env`.
+
+This integration is configured inside Home Assistant after the container is running. It
+is not enabled automatically by the Docker Compose files in this repo.
 
 ## Proxy Setup
 
