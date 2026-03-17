@@ -14,7 +14,7 @@ views:
         square: false
         cards:
           - type: gauge
-            entity: sensor.0xa4c138ce09a1c5b0_soil_moisture
+            entity: sensor.plant_01_soil_moisture
             name: Soil Moisture
             min: 0
             max: 100
@@ -23,7 +23,7 @@ views:
               yellow: 25
               green: 45
           - type: gauge
-            entity: sensor.0xa4c138ce09a1c5b0_soil_fertility
+            entity: sensor.plant_01_soil_fertility
             name: Soil Fertility
             min: 0
             max: 3000
@@ -45,13 +45,13 @@ views:
         title: Plant Sensor
         show_header_toggle: false
         entities:
-          - entity: sensor.0xa4c138ce09a1c5b0_soil_moisture
-          - entity: sensor.0xa4c138ce09a1c5b0_soil_fertility
-          - entity: sensor.0xa4c138ce09a1c5b0_temperature
-          - entity: sensor.0xa4c138ce09a1c5b0_humidity
-          - entity: sensor.0xa4c138ce09a1c5b0_illuminance
-          - entity: sensor.0xa4c138ce09a1c5b0_battery
-          - entity: sensor.0xa4c138ce09a1c5b0_water_warning
+          - entity: sensor.plant_01_soil_moisture
+          - entity: sensor.plant_01_soil_fertility
+          - entity: sensor.plant_01_temperature
+          - entity: sensor.plant_01_humidity
+          - entity: sensor.plant_01_illuminance
+          - entity: sensor.plant_01_battery
+          - entity: sensor.plant_01_water_warning
 
       - type: entities
         title: Timers And Device Details
@@ -74,7 +74,7 @@ views:
         hours_to_show: 24
         entities:
           - entity: sensor.humidifier_temperature
-          - entity: sensor.0xa4c138ce09a1c5b0_temperature
+          - entity: sensor.plant_01_temperature
           - entity: sensor.zhimi_de_319110959_mb4_pm2_5_density_p_3_4
 
       - type: history-graph
@@ -82,13 +82,13 @@ views:
         hours_to_show: 24
         entities:
           - entity: sensor.humidifier_humidity
-          - entity: sensor.0xa4c138ce09a1c5b0_humidity
+          - entity: sensor.plant_01_humidity
 
       - type: history-graph
         title: Plant Light Trend
         hours_to_show: 24
         entities:
-          - entity: sensor.0xa4c138ce09a1c5b0_illuminance
+          - entity: sensor.plant_01_illuminance
 
   - title: Maintenance
     path: maintenance
@@ -103,13 +103,13 @@ views:
         title: Plant Calibration
         show_header_toggle: false
         entities:
-          - entity: number.0xa4c138ce09a1c5b0_humidity_calibration
-          - entity: number.0xa4c138ce09a1c5b0_illuminance_calibration
-          - entity: number.0xa4c138ce09a1c5b0_soil_calibration
-          - entity: number.0xa4c138ce09a1c5b0_soil_fertility_warning_setting
-          - entity: number.0xa4c138ce09a1c5b0_soil_sampling
-          - entity: number.0xa4c138ce09a1c5b0_soil_warning
-          - entity: number.0xa4c138ce09a1c5b0_temperature_calibration
+          - entity: number.plant_01_humidity_calibration
+          - entity: number.plant_01_illuminance_calibration
+          - entity: number.plant_01_soil_calibration
+          - entity: number.plant_01_soil_fertility_warning_setting
+          - entity: number.plant_01_soil_sampling
+          - entity: number.plant_01_soil_warning
+          - entity: number.plant_01_temperature_calibration
 
       - type: entities
         title: Kitchen Camera Deep Settings

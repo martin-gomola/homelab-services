@@ -1,0 +1,28 @@
+{
+  "routes": {
+    "to_nova_doba": {
+      "label": "To Nova doba",
+      "from_stop": "Bratislava-Rača, Hubeného",
+      "from_code": "8",
+      "to_stop": "Nová doba",
+      "to_code": "400003",
+      "timezone": "Europe/Bratislava",
+      "limit": 3,
+      "direct": true,
+      "af": true,
+      "trt": ["300", "301"]
+    },
+    "to_hubeneho": {
+      "label": "Back to Hubeneho",
+      "from_stop": "Nová doba",
+      "from_code": "400003",
+      "to_stop": "Bratislava-Rača, Hubeného",
+      "to_code": "8",
+      "timezone": "Europe/Bratislava",
+      "limit": 3,
+      "direct": true,
+      "af": true,
+      "trt": ["300", "301"]
+    }
+  }
+}

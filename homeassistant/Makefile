@@ -1,4 +1,4 @@
-.PHONY: help setup up down restart logs ps codex-mcp-install tuya-local-install dashboard-install
+.PHONY: help setup up down restart logs ps codex-mcp-install tuya-local-install dashboard-install config-install update
 
 .DEFAULT_GOAL := help
 
@@ -15,6 +15,8 @@ help:
 	@echo "  codex-mcp-install - Register Home Assistant MCP in local Codex config"
 	@echo "  tuya-local-install - Install pinned tuya_local custom component and repo overlays"
 	@echo "  dashboard-install - Sync tracked dashboard YAML files into live Home Assistant config"
+	@echo "  config-install - Sync tracked Home Assistant base config into live Home Assistant config"
+	@echo "  update - Sync tracked Home Assistant config and dashboards into live Home Assistant config"
 
 setup:
 	./setup.sh
@@ -42,3 +44,8 @@ tuya-local-install:
 
 dashboard-install:
 	bash ./scripts/install-dashboard-overlays.sh
+
+config-install:
+	bash ./scripts/install-config-overlays.sh
+
+update: config-install dashboard-install

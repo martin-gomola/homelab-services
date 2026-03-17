@@ -4,39 +4,34 @@ views:
     path: home
     icon: mdi:home
     badges:
-      - entity: sensor.0xa4c138ce09a1c5b0_humidity
+      - entity: sensor.plant_01_humidity
         name: Plant Humidity
       - entity: sensor.humidifier_humidity
         name: Humidifier Humidity
+      - entity: binary_sensor.humidifier_tank
+        name: Tank
     cards:
-      - type: markdown
-        content: |
-          ## Home Pulse
-          Daily controls, comfort signals, and quick checks from one screen.
-
       - type: glance
-        title: House Status
-        columns: 4
+        title: At A Glance
+        columns: 3
         entities:
           - entity: person.beskar_labs
             name: Martin
-          - entity: weather.forecast_home
-            name: Weather
-          - entity: binary_sensor.humidifier_tank
-            name: Tank
-          - entity: sensor.0xa4c138ce09a1c5b0_water_warning
-            name: Plant
-
+          - entity: sensor.cp_to_nova_doba
+            name: To Nova doba
+          - entity: sensor.cp_to_hubeneho
+            name: Back home  
       - type: weather-forecast
         entity: weather.forecast_home
         forecast_type: daily
 
       - type: grid
-        columns: 3
+        title: Comfort Snapshot
+        columns: 2
         square: false
         cards:
           - type: gauge
-            entity: sensor.0xa4c138ce09a1c5b0_illuminance
+            entity: sensor.plant_01_illuminance
             name: Plant Lux
             min: 0
             max: 20000
@@ -46,7 +41,16 @@ views:
               yellow: 200
               green: 1500
           - type: gauge
-            entity: sensor.0xa4c138ce09a1c5b0_humidity
+            entity: sensor.zhimi_de_319110959_mb4_pm2_5_density_p_3_4
+            name: PM2.5
+            min: 0
+            max: 500
+            severity:
+              green: 0
+              yellow: 35
+              red: 120
+          - type: gauge
+            entity: sensor.plant_01_humidity
             name: Plant Humidity
             min: 0
             max: 100
@@ -56,7 +60,7 @@ views:
               green: 50
           - type: gauge
             entity: sensor.humidifier_humidity
-            name: Humidifier Humidity
+            name: Bedroom Humidity
             min: 0
             max: 100
             severity:
@@ -70,18 +74,32 @@ views:
         square: false
         cards:
           - type: tile
-            entity: sensor.0xa4c138ce09a1c5b0_temperature
+            entity: sensor.plant_01_temperature
             name: Plant Temperature
           - type: tile
             entity: sensor.humidifier_temperature
             name: Humidifier Temperature
+
+      - type: grid
+        title: Commute Snapshot
+        columns: 2
+        square: false
+        cards:
+          - type: tile
+            entity: sensor.cp_to_nova_doba
+            name: To Nova doba
+            icon: mdi:bus-clock
+          - type: tile
+            entity: sensor.cp_to_hubeneho
+            name: Back to Hubeneho
+            icon: mdi:bus-clock
 
       - type: markdown
         content: |
           ## Quick Controls
 
       - type: grid
-        columns: 3
+        columns: 2
         square: false
         cards:
           - type: tile
@@ -89,10 +107,10 @@ views:
             name: Light Strip
           - type: tile
             entity: switch.living_room
-            name: Living Room Plug
+            name: Living Room Switch
           - type: tile
             entity: switch.kitchen
-            name: Kitchen Plug
+            name: Kitchen Switch
           - type: tile
             entity: switch.humidifier_power
             name: Humidifier Power
@@ -109,79 +127,3 @@ views:
         brightness: true
         color_temp: true
         effect_list: true
-
-      - type: entities
-        title: Air And Comfort
-        show_header_toggle: false
-        entities:
-          - entity: humidifier.humidifier
-            name: Humidifier Mode
-          - entity: fan.humidifier_spray_level
-          - entity: sensor.humidifier_temperature
-          - entity: binary_sensor.humidifier_tank
-          - entity: binary_sensor.humidifier_problem
-          - type: divider
-          - entity: switch.zhimi_de_319110959_mb4_on_p_2_1
-            name: Air Purifier Power
-          - entity: select.zhimi_de_319110959_mb4_mode_p_2_4
-            name: Air Purifier Mode
-          - entity: sensor.zhimi_de_319110959_mb4_pm2_5_density_p_3_4
-            name: PM2.5
-          - entity: sensor.zhimi_de_319110959_mb4_filter_life_level_p_4_1
-            name: Filter Life
-          - type: divider
-          - entity: fan.zhimi_de_106389295_za4_s_2_fan
-            name: Bedroom Fan
-          - entity: select.zhimi_de_106389295_za4_fan_level_a_p_2_2
-            name: Fan Speed
-          - entity: number.zhimi_de_106389295_za4_countdown_time_p_6_1
-            name: Fan Countdown
-
-      - type: markdown
-        content: |
-          ## Environment Snapshot
-
-      - type: grid
-        columns: 3
-        square: false
-        cards:
-          - type: gauge
-            entity: sensor.zhimi_de_319110959_mb4_pm2_5_density_p_3_4
-            name: PM2.5
-            min: 0
-            max: 500
-            severity:
-              green: 0
-              yellow: 35
-              red: 120
-          - type: gauge
-            entity: sensor.0xa4c138ce09a1c5b0_soil_moisture
-            name: Soil Moisture
-            min: 0
-            max: 100
-            severity:
-              red: 0
-              yellow: 25
-              green: 45
-          - type: gauge
-            entity: sensor.0xa4c138ce09a1c5b0_battery
-            name: Plant Sensor Battery
-            min: 0
-            max: 100
-            severity:
-              red: 0
-              yellow: 25
-              green: 60
-
-      - type: entities
-        title: Plant Snapshot
-        show_header_toggle: false
-        entities:
-          - entity: sensor.0xa4c138ce09a1c5b0_soil_moisture
-          - entity: sensor.0xa4c138ce09a1c5b0_soil_fertility
-          - entity: sensor.0xa4c138ce09a1c5b0_temperature
-          - entity: sensor.0xa4c138ce09a1c5b0_humidity
-          - entity: sensor.0xa4c138ce09a1c5b0_illuminance
-          - entity: sensor.humidifier_humidity
-          - entity: sensor.0xa4c138ce09a1c5b0_water_warning
-          - entity: sensor.0xa4c138ce09a1c5b0_battery

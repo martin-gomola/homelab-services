@@ -218,6 +218,42 @@ Good next dashboards to create:
 For a floorplan image, place it in:
 
 ```text
+
+## Tracked Home Assistant Overlays
+
+This repo can track small, intentional Home Assistant config overlays without committing the whole live `/config` directory.
+
+Tracked today:
+
+- `configuration.yaml`
+- `command_line.yaml`
+- `commute/`
+- `dashboards/`
+- `themes/`
+- `templates/`
+- `custom_components/tuya_local/devices/`
+
+Sync helpers:
+
+```bash
+make update
+make config-install
+make dashboard-install
+make tuya-local-install
+```
+
+`make update` is the short everyday command for syncing tracked config and dashboard overlays into the live Home Assistant config.
+
+Important:
+
+- Home Assistant config is mounted from `${DATA_DIR}/homeassistant/config:/config`
+- it is not baked into the Docker image during build
+- so persistent UI and config changes should live in this repo and then be synced into the mounted config directory
+
+Current note:
+
+- the built-in `Energy` dashboard is intentionally excluded from `configuration.yaml` until power-measuring outlets are added
+- CP.sk commute routes are configured in `commute/routes.json`, including direct-only and MHD transport filters
 /config/www/floorplan.png
 ```
 

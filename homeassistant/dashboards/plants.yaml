@@ -1,0 +1,110 @@
+title: Plant Sensor
+views:
+  - title: Overview
+    path: overview
+    icon: mdi:sprout
+    type: sidebar
+    cards:
+      - type: heading
+        heading: Plant Sensor
+        heading_style: title
+        icon: mdi:leaf
+
+      - type: grid
+        title: At A Glance
+        columns: 2
+        square: false
+        view_layout:
+          position: sidebar
+        cards:
+          - type: gauge
+            entity: sensor.plant_01_soil_moisture
+            name: Soil Moisture
+            min: 0
+            max: 100
+            severity:
+              green: 45
+              yellow: 25
+              red: 10
+          - type: gauge
+            entity: sensor.plant_01_humidity
+            name: Air Humidity
+            min: 0
+            max: 100
+            severity:
+              green: 55
+              yellow: 35
+              red: 20
+          - type: tile
+            entity: sensor.plant_01_temperature
+            name: Temperature
+            icon: mdi:thermometer
+          - type: tile
+            entity: sensor.plant_01_illuminance
+            name: Light
+            icon: mdi:white-balance-sunny
+
+      - type: entities
+        title: Plant Health
+        show_header_toggle: false
+        view_layout:
+          position: sidebar
+        entities:
+          - entity: sensor.plant_01_water_warning
+            name: Water Warning
+          - entity: sensor.plant_01_soil_fertility_warning
+            name: Fertility Warning
+          - entity: sensor.plant_01_soil_fertility
+            name: Soil Fertility
+          - entity: sensor.plant_01_battery
+            name: Battery
+
+      - type: history-graph
+        title: Daily Trends
+        hours_to_show: 24
+        entities:
+          - entity: sensor.plant_01_soil_moisture
+            name: Soil Moisture
+          - entity: sensor.plant_01_humidity
+            name: Air Humidity
+          - entity: sensor.plant_01_temperature
+            name: Temperature
+
+      - type: history-graph
+        title: Light And Fertility
+        hours_to_show: 24
+        entities:
+          - entity: sensor.plant_01_illuminance
+            name: Light
+          - entity: sensor.plant_01_soil_fertility
+            name: Soil Fertility
+
+      - type: grid
+        title: Care Settings
+        columns: 2
+        square: false
+        view_layout:
+          position: sidebar
+        cards:
+          - type: entities
+            title: Thresholds
+            show_header_toggle: false
+            entities:
+              - entity: number.plant_01_soil_warning
+                name: Soil Warning
+              - entity: number.plant_01_soil_fertility_warning_setting
+                name: Fertility Warning
+              - entity: number.plant_01_soil_sampling
+                name: Sampling Interval
+          - type: entities
+            title: Calibration
+            show_header_toggle: false
+            entities:
+              - entity: number.plant_01_humidity_calibration
+                name: Humidity
+              - entity: number.plant_01_temperature_calibration
+                name: Temperature
+              - entity: number.plant_01_soil_calibration
+                name: Soil Moisture
+              - entity: number.plant_01_illuminance_calibration
+                name: Light

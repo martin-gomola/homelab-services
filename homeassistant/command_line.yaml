@@ -1,0 +1,53 @@
+- sensor:
+    name: CP To Nova Doba
+    unique_id: cp_to_nova_doba
+    command: >-
+      python3 /config/commute/cp_commute.py
+      --config /config/commute/routes.json
+      --route to_nova_doba
+    command_timeout: 45
+    scan_interval: 300
+    value_template: "{{ value_json.state }}"
+    json_attributes:
+      - error
+      - next_departure
+      - next_arrival
+      - next_duration
+      - next_lines
+      - next_minutes_until
+      - route_name
+      - route_from
+      - route_to
+      - direct_only
+      - advanced_filters
+      - transport_types
+      - query_url
+      - updated_at
+      - connections
+
+- sensor:
+    name: CP To Hubeneho
+    unique_id: cp_to_hubeneho
+    command: >-
+      python3 /config/commute/cp_commute.py
+      --config /config/commute/routes.json
+      --route to_hubeneho
+    command_timeout: 45
+    scan_interval: 300
+    value_template: "{{ value_json.state }}"
+    json_attributes:
+      - error
+      - next_departure
+      - next_arrival
+      - next_duration
+      - next_lines
+      - next_minutes_until
+      - route_name
+      - route_from
+      - route_to
+      - direct_only
+      - advanced_filters
+      - transport_types
+      - query_url
+      - updated_at
+      - connections

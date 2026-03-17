@@ -35,3 +35,7 @@ availability: true
 
 device_options:
   legacy: false
+
+devices:
+  '0xa4c138ce09a1c5b0':
+    friendly_name: plant_01
