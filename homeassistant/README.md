@@ -373,9 +373,20 @@ Simplest path:
 
 Local-only path:
 
-1. Install HACS
-2. Install `LocalTuya`
-3. Add each device using its IP and local key
+1. Run `make tuya-local-install`
+2. Restart Home Assistant if it is already running
+3. Add `Tuya Local` in Home Assistant
+4. Add each device using cloud-assisted setup or its IP and local key
+
+For this repo, custom `Tuya Local` device overlays that we maintain should be
+checked into git under:
+
+```text
+homeassistant/custom_components/tuya_local/devices/
+```
+
+The installer copies those overlays into the live Home Assistant config under
+`/config/custom_components/tuya_local/devices/`.
 
 ### Xiaomi light strip
 

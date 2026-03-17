@@ -1,0 +1,21 @@
+name: Wi-Fi switch
+products:
+  - id: 4nqs33emdwJxpQ8O
+    manufacturer: Tuya
+    model: SWITCH1
+entities:
+  - entity: switch
+    dps:
+      - id: 1
+        name: switch
+        type: boolean
+  - entity: time
+    category: config
+    translation_key: timer
+    dps:
+      - id: 9
+        name: second
+        type: integer
+        range:
+          min: 0
+          max: 86400

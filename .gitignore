@@ -52,3 +52,4 @@ redis-data/
 tmp/
 temp/
 *.tmp
+snapshot.json
