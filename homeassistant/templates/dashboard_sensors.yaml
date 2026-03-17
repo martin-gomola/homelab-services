@@ -1,0 +1,8 @@
+- sensor:
+    - name: Humidifier Humidity
+      unique_id: dashboard_humidifier_humidity
+      unit_of_measurement: "%"
+      device_class: humidity
+      state_class: measurement
+      availability: "{{ state_attr('humidifier.humidifier', 'current_humidity') is not none }}"
+      state: "{{ state_attr('humidifier.humidifier', 'current_humidity') }}"

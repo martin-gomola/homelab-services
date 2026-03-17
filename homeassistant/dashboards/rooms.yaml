@@ -1,0 +1,245 @@
+title: Rooms
+views:
+  - title: Living Room
+    path: living-room
+    icon: mdi:sofa-outline
+    cards:
+      - type: markdown
+        content: |
+          ## Living Room
+          Media, lighting, air quality, and the room camera.
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: tile
+            entity: light.yeelight_stripe_0x12a2e794
+            name: Light Strip
+          - type: tile
+            entity: switch.living_room
+            name: Plug
+          - type: tile
+            entity: switch.zhimi_de_319110959_mb4_on_p_2_1
+            name: Air Purifier
+          - type: tile
+            entity: media_player.samsung_8_series_55_ue55ru8002uxxh
+            name: TV
+
+      - type: light
+        entity: light.yeelight_stripe_0x12a2e794
+        name: Light Strip Studio
+        brightness: true
+        color_temp: true
+        effect_list: true
+
+      - type: media-control
+        entity: media_player.samsung_8_series_55_ue55ru8002uxxh
+
+      - type: entities
+        title: Air Purifier
+        show_header_toggle: false
+        entities:
+          - entity: switch.zhimi_de_319110959_mb4_on_p_2_1
+            name: Power
+          - entity: select.zhimi_de_319110959_mb4_mode_p_2_4
+            name: Mode
+          - entity: sensor.zhimi_de_319110959_mb4_pm2_5_density_p_3_4
+            name: PM2.5
+          - entity: sensor.zhimi_de_319110959_mb4_filter_life_level_p_4_1
+            name: Filter Life
+          - entity: sensor.zhimi_de_319110959_mb4_filter_used_time_p_4_3
+            name: Filter Used Time
+          - entity: number.zhimi_de_319110959_mb4_favorite_speed_p_9_3
+            name: Favorite Speed
+          - entity: number.zhimi_de_319110959_mb4_brightness_p_7_2
+            name: Display Brightness
+          - entity: switch.zhimi_de_319110959_mb4_physical_controls_locked_p_8_1
+            name: Control Lock
+          - entity: switch.zhimi_de_319110959_mb4_alarm_p_6_1
+            name: Alarm
+
+      - type: entities
+        title: Living Room Camera
+        show_header_toggle: false
+        entities:
+          - entity: switch.chuangmi_de_309337105_ipc016_on_p_2_1
+            name: Camera Power
+          - entity: binary_sensor.chuangmi_de_309337105_ipc016_motion_tracking_p_2_8
+            name: Motion Tracking
+          - entity: select.chuangmi_de_309337105_ipc016_night_shot_p_2_3
+            name: Night Mode
+          - entity: select.chuangmi_de_309337105_ipc016_recording_mode_p_2_7
+            name: Recording Mode
+          - entity: switch.chuangmi_de_309337105_ipc016_time_watermark_p_2_4
+            name: Time Watermark
+          - entity: switch.chuangmi_de_309337105_ipc016_wdr_mode_p_2_5
+            name: WDR Mode
+          - entity: switch.chuangmi_de_309337105_ipc016_glimmer_full_color_p_2_6
+            name: Full Color Night Vision
+          - entity: number.chuangmi_de_309337105_ipc016_image_rollover_p_2_2
+            name: Image Rotation
+
+  - title: Kitchen
+    path: kitchen
+    icon: mdi:silverware-fork-knife
+    cards:
+      - type: markdown
+        content: |
+          ## Kitchen
+          Plug control plus camera monitoring, detection, and recording settings.
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: tile
+            entity: switch.kitchen
+            name: Plug
+          - type: tile
+            entity: switch.mxiang_de_1147325117_c301_on_p_2_1
+            name: Camera Power
+          - type: tile
+            entity: switch.mxiang_de_1147325117_c301_motion_detection_p_5_1
+            name: Motion Detection
+          - type: tile
+            entity: switch.mxiang_de_1147325117_c301_human_detection_p_8_6
+            name: Human Detection
+
+      - type: entities
+        title: Camera Activity
+        show_header_toggle: false
+        entities:
+          - entity: binary_sensor.mxiang_de_1147325117_c301_ptz_camera_p_2_2
+            name: PTZ Camera
+          - entity: event.mxiang_de_1147325117_c301_object_motion_e_8_4
+            name: Last Object Motion
+          - entity: event.mxiang_de_1147325117_c301_someone_appeared_e_8_5
+            name: Last Person Event
+          - entity: sensor.mxiang_de_1147325117_c301_status_p_3_1
+            name: Memory Card Status
+          - entity: sensor.mxiang_de_1147325117_c301_remaining_recording_duration_p_3_6
+            name: Remaining Recording
+          - entity: sensor.mxiang_de_1147325117_c301_storage_free_space_p_3_3
+            name: Free Space
+          - entity: sensor.mxiang_de_1147325117_c301_storage_total_space_p_3_2
+            name: Total Space
+          - entity: sensor.mxiang_de_1147325117_c301_storage_used_space_p_3_4
+            name: Used Space
+
+      - type: entities
+        title: Camera Settings
+        show_header_toggle: false
+        entities:
+          - entity: light.mxiang_de_1147325117_c301_s_4_indicator_light
+            name: Indicator Light
+          - entity: switch.mxiang_de_1147325117_c301_motion_tracking_p_2_8
+            name: Motion Tracking
+          - entity: switch.mxiang_de_1147325117_c301_move_detection_p_8_7
+            name: Move Detection
+          - entity: switch.mxiang_de_1147325117_c301_local_storage_p_2_12
+            name: Local Storage
+          - entity: switch.mxiang_de_1147325117_c301_mute_p_6_2
+            name: Mute
+          - entity: select.mxiang_de_1147325117_c301_detection_sensitivity_p_5_3
+            name: Detection Sensitivity
+          - entity: select.mxiang_de_1147325117_c301_night_shot_p_2_3
+            name: Night Mode
+          - entity: select.mxiang_de_1147325117_c301_recording_mode_p_2_11
+            name: Recording Mode
+          - entity: text.mxiang_de_1147325117_c301_motion_detection_start_time_p_5_4
+            name: Detection Start
+          - entity: text.mxiang_de_1147325117_c301_motion_detection_end_time_p_5_5
+            name: Detection End
+
+      - type: grid
+        columns: 3
+        square: false
+        cards:
+          - type: button
+            entity: button.mxiang_de_1147325117_c301_ptz_calibrate_a_2_1
+            name: Calibrate PTZ
+          - type: button
+            entity: button.mxiang_de_1147325117_c301_restart_device_a_2_2
+            name: Restart Camera
+          - type: button
+            entity: button.mxiang_de_1147325117_c301_upload_video_a_9_3
+            name: Upload Video
+          - type: button
+            entity: button.mxiang_de_1147325117_c301_get_stream_configuration_a_19_3
+            name: Stream Config
+
+  - title: Bedroom
+    path: bedroom
+    icon: mdi:bed-king-outline
+    cards:
+      - type: markdown
+        content: |
+          ## Bedroom
+          Fan and humidifier together, with the controls that matter at night.
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: tile
+            entity: switch.humidifier_power
+            name: Humidifier Power
+          - type: tile
+            entity: humidifier.humidifier
+            name: Humidifier Mode
+          - type: tile
+            entity: fan.zhimi_de_106389295_za4_s_2_fan
+            name: Fan
+          - type: tile
+            entity: fan.humidifier_spray_level
+            name: Spray Level
+
+      - type: entities
+        title: Humidifier
+        show_header_toggle: false
+        entities:
+          - entity: humidifier.humidifier
+            name: Mode
+          - entity: switch.humidifier_power
+            name: Power
+          - entity: fan.humidifier_spray_level
+          - entity: sensor.humidifier_temperature
+          - entity: select.humidifier_timer
+          - entity: select.humidifier_temperature_unit
+          - entity: switch.humidifier_warm_mist
+          - entity: switch.humidifier_plasma
+          - entity: switch.humidifier_uv_sterilization
+          - entity: light.humidifier_indicator
+          - entity: binary_sensor.humidifier_tank
+          - entity: binary_sensor.humidifier_problem
+
+      - type: entities
+        title: Fan
+        show_header_toggle: false
+        entities:
+          - entity: fan.zhimi_de_106389295_za4_s_2_fan
+            name: Power
+          - entity: select.zhimi_de_106389295_za4_fan_level_a_p_2_2
+            name: Fan Speed
+          - entity: number.zhimi_de_106389295_za4_countdown_time_p_6_1
+            name: Countdown
+          - entity: select.zhimi_de_106389295_za4_brightness_p_5_1
+            name: Display Brightness
+          - entity: switch.zhimi_de_106389295_za4_physical_controls_locked_p_3_1
+            name: Lock Controls
+          - entity: switch.zhimi_de_106389295_za4_alarm_p_4_1
+            name: Alarm
+          - entity: number.zhimi_de_106389295_za4_horizontal_swing_included_angle_p_2_4
+            name: Swing Angle
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: button
+            entity: button.zhimi_de_106389295_za4_turn_left_a_2_1
+            name: Turn Left
+          - type: button
+            entity: button.zhimi_de_106389295_za4_turn_right_a_2_2
+            name: Turn Right

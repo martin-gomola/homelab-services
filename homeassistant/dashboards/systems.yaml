@@ -1,0 +1,144 @@
+title: Systems
+views:
+  - title: Environment
+    path: environment
+    icon: mdi:leaf-circle-outline
+    cards:
+      - type: markdown
+        content: |
+          ## Environment
+          Plant health, air quality, and long-running comfort devices.
+
+      - type: grid
+        columns: 3
+        square: false
+        cards:
+          - type: gauge
+            entity: sensor.0xa4c138ce09a1c5b0_soil_moisture
+            name: Soil Moisture
+            min: 0
+            max: 100
+            severity:
+              red: 0
+              yellow: 25
+              green: 45
+          - type: gauge
+            entity: sensor.0xa4c138ce09a1c5b0_soil_fertility
+            name: Soil Fertility
+            min: 0
+            max: 3000
+            severity:
+              red: 0
+              yellow: 1200
+              green: 2000
+          - type: gauge
+            entity: sensor.zhimi_de_319110959_mb4_pm2_5_density_p_3_4
+            name: PM2.5
+            min: 0
+            max: 500
+            severity:
+              green: 0
+              yellow: 35
+              red: 120
+
+      - type: entities
+        title: Plant Sensor
+        show_header_toggle: false
+        entities:
+          - entity: sensor.0xa4c138ce09a1c5b0_soil_moisture
+          - entity: sensor.0xa4c138ce09a1c5b0_soil_fertility
+          - entity: sensor.0xa4c138ce09a1c5b0_temperature
+          - entity: sensor.0xa4c138ce09a1c5b0_humidity
+          - entity: sensor.0xa4c138ce09a1c5b0_illuminance
+          - entity: sensor.0xa4c138ce09a1c5b0_battery
+          - entity: sensor.0xa4c138ce09a1c5b0_water_warning
+
+      - type: entities
+        title: Timers And Device Details
+        show_header_toggle: false
+        entities:
+          - entity: time.kitchen_timer
+          - entity: time.living_room_timer
+          - entity: select.humidifier_timer
+          - entity: select.humidifier_temperature_unit
+          - entity: sensor.humidifier_temperature
+          - entity: sensor.zhimi_de_319110959_mb4_filter_used_time_p_4_3
+            name: Purifier Filter Used Time
+          - entity: sensor.zhimi_de_319110959_mb4_moto_speed_rpm_p_9_1
+            name: Purifier Motor RPM
+          - entity: sensor.zhimi_de_319110959_mb4_fault_p_2_2
+            name: Purifier Fault
+
+      - type: history-graph
+        title: Comfort Trend
+        hours_to_show: 24
+        entities:
+          - entity: sensor.humidifier_temperature
+          - entity: sensor.0xa4c138ce09a1c5b0_temperature
+          - entity: sensor.zhimi_de_319110959_mb4_pm2_5_density_p_3_4
+
+      - type: history-graph
+        title: Humidity Comparison
+        hours_to_show: 24
+        entities:
+          - entity: sensor.humidifier_humidity
+          - entity: sensor.0xa4c138ce09a1c5b0_humidity
+
+      - type: history-graph
+        title: Plant Light Trend
+        hours_to_show: 24
+        entities:
+          - entity: sensor.0xa4c138ce09a1c5b0_illuminance
+
+  - title: Maintenance
+    path: maintenance
+    icon: mdi:wrench-cog-outline
+    cards:
+      - type: markdown
+        content: |
+          ## Maintenance
+          Advanced device actions, calibration, and lower-frequency settings.
+
+      - type: entities
+        title: Plant Calibration
+        show_header_toggle: false
+        entities:
+          - entity: number.0xa4c138ce09a1c5b0_humidity_calibration
+          - entity: number.0xa4c138ce09a1c5b0_illuminance_calibration
+          - entity: number.0xa4c138ce09a1c5b0_soil_calibration
+          - entity: number.0xa4c138ce09a1c5b0_soil_fertility_warning_setting
+          - entity: number.0xa4c138ce09a1c5b0_soil_sampling
+          - entity: number.0xa4c138ce09a1c5b0_soil_warning
+          - entity: number.0xa4c138ce09a1c5b0_temperature_calibration
+
+      - type: entities
+        title: Kitchen Camera Deep Settings
+        show_header_toggle: false
+        entities:
+          - entity: number.mxiang_de_1147325117_c301_alarm_interval_p_5_2
+            name: Alarm Interval
+          - entity: number.mxiang_de_1147325117_c301_active_fav_area_p_10_2
+            name: Active Favorite Area
+          - entity: number.mxiang_de_1147325117_c301_image_rollover_p_2_4
+            name: Image Rotation
+          - entity: number.mxiang_de_1147325117_c301_volume_p_6_1
+            name: Volume
+          - entity: text.mxiang_de_1147325117_c301_fav_area_p_10_1
+            name: Favorite Area
+          - entity: switch.mxiang_de_1147325117_c301_dialog_ejected_p_3_5
+            name: Dialog Ejected
+          - entity: switch.mxiang_de_1147325117_c301_glimmer_full_color_p_2_7
+            name: Full Color Night Vision
+          - entity: switch.mxiang_de_1147325117_c301_time_watermark_p_2_5
+            name: Time Watermark
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: button
+            entity: button.chuangmi_de_309337105_ipc016_pop_up_a_7_2
+            name: Living Camera Popup
+          - type: button
+            entity: button.chuangmi_de_309337105_ipc016_format_a_7_1
+            name: Format Living Camera
