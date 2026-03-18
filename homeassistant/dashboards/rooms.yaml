@@ -4,34 +4,60 @@ views:
     path: living-room
     icon: mdi:sofa-outline
     cards:
-      - type: markdown
-        content: |
-          ## Living Room
-          Media, lighting, air quality, and the room camera.
+      - type: custom:mushroom-title-card
+        title: Living Room
+        subtitle: Media, lighting, air quality, and camera.
+
+      - type: custom:mushroom-chips-card
+        chips:
+          - type: entity
+            entity: light.yeelight_stripe_0x12a2e794
+            icon: mdi:led-strip-variant
+            content_info: none
+          - type: entity
+            entity: switch.living_room
+            icon: mdi:power-plug
+            content_info: none
+          - type: template
+            entity: sensor.zhimi_de_319110959_mb4_pm2_5_density_p_3_4
+            icon: mdi:air-filter
+            content: "{{ states('sensor.zhimi_de_319110959_mb4_pm2_5_density_p_3_4') }}"
+            icon_color: |-
+              {% set pm = states('sensor.zhimi_de_319110959_mb4_pm2_5_density_p_3_4') | int(0) %}
+              {% if pm > 120 %}red
+              {% elif pm > 35 %}amber
+              {% else %}green{% endif %}
+          - type: entity
+            entity: media_player.samsung_8_series_55_ue55ru8002uxxh
+            icon: mdi:television
+            content_info: none
 
       - type: grid
         columns: 2
         square: false
         cards:
-          - type: tile
+          - type: custom:mushroom-light-card
             entity: light.yeelight_stripe_0x12a2e794
             name: Light Strip
-          - type: tile
+            show_brightness_control: true
+            show_color_temp_control: true
+            use_light_color: true
+          - type: custom:mushroom-entity-card
             entity: switch.living_room
             name: Plug
-          - type: tile
+            icon: mdi:power-plug
+            tap_action:
+              action: toggle
+          - type: custom:mushroom-entity-card
             entity: switch.zhimi_de_319110959_mb4_on_p_2_1
             name: Air Purifier
-          - type: tile
+            icon: mdi:air-purifier
+            tap_action:
+              action: toggle
+          - type: custom:mushroom-entity-card
             entity: media_player.samsung_8_series_55_ue55ru8002uxxh
             name: TV
-
-      - type: light
-        entity: light.yeelight_stripe_0x12a2e794
-        name: Light Strip Studio
-        brightness: true
-        color_temp: true
-        effect_list: true
+            icon: mdi:television
 
       - type: media-control
         entity: media_player.samsung_8_series_55_ue55ru8002uxxh
@@ -84,27 +110,67 @@ views:
     path: kitchen
     icon: mdi:silverware-fork-knife
     cards:
-      - type: markdown
-        content: |
-          ## Kitchen
-          Plug control plus camera monitoring, detection, and recording settings.
+      - type: custom:mushroom-title-card
+        title: Kitchen
+        subtitle: Plug control and camera monitoring.
+
+      - type: custom:mushroom-chips-card
+        chips:
+          - type: entity
+            entity: switch.kitchen
+            icon: mdi:power-plug
+            content_info: none
+          - type: entity
+            entity: switch.mxiang_de_1147325117_c301_on_p_2_1
+            icon: mdi:cctv
+            content_info: none
+          - type: conditional
+            conditions:
+              - entity: switch.mxiang_de_1147325117_c301_motion_detection_p_5_1
+                state: "on"
+            chip:
+              type: template
+              icon: mdi:motion-sensor
+              icon_color: green
+              content: ""
+          - type: conditional
+            conditions:
+              - entity: switch.mxiang_de_1147325117_c301_human_detection_p_8_6
+                state: "on"
+            chip:
+              type: template
+              icon: mdi:human-greeting-proximity
+              icon_color: green
+              content: ""
 
       - type: grid
         columns: 2
         square: false
         cards:
-          - type: tile
+          - type: custom:mushroom-entity-card
             entity: switch.kitchen
             name: Plug
-          - type: tile
+            icon: mdi:power-plug
+            tap_action:
+              action: toggle
+          - type: custom:mushroom-entity-card
             entity: switch.mxiang_de_1147325117_c301_on_p_2_1
             name: Camera Power
-          - type: tile
+            icon: mdi:cctv
+            tap_action:
+              action: toggle
+          - type: custom:mushroom-entity-card
             entity: switch.mxiang_de_1147325117_c301_motion_detection_p_5_1
             name: Motion Detection
-          - type: tile
+            icon: mdi:motion-sensor
+            tap_action:
+              action: toggle
+          - type: custom:mushroom-entity-card
             entity: switch.mxiang_de_1147325117_c301_human_detection_p_8_6
             name: Human Detection
+            icon: mdi:human-greeting-proximity
+            tap_action:
+              action: toggle
 
       - type: entities
         title: Camera Activity
@@ -173,25 +239,59 @@ views:
     path: bedroom
     icon: mdi:bed-king-outline
     cards:
-      - type: markdown
-        content: |
-          ## Bedroom
-          Fan and humidifier together, with the controls that matter at night.
+      - type: custom:mushroom-title-card
+        title: Bedroom
+        subtitle: >-
+          {{ states('sensor.humidifier_humidity') }}% humidity
+          · {{ states('sensor.humidifier_temperature') }}°C
+
+      - type: custom:mushroom-chips-card
+        chips:
+          - type: entity
+            entity: switch.humidifier_power
+            icon: mdi:air-humidifier
+            content_info: none
+          - type: entity
+            entity: fan.zhimi_de_106389295_za4_s_2_fan
+            icon: mdi:fan
+            content_info: none
+          - type: template
+            entity: sensor.humidifier_humidity
+            icon: mdi:water
+            content: "{{ states('sensor.humidifier_humidity') }}%"
+            icon_color: |-
+              {% set h = states('sensor.humidifier_humidity') | int(0) %}
+              {% if h < 35 %}red
+              {% elif h < 45 %}amber
+              {% else %}green{% endif %}
+          - type: conditional
+            conditions:
+              - entity: binary_sensor.humidifier_tank
+                state: "on"
+            chip:
+              type: template
+              icon: mdi:cup-water
+              icon_color: red
+              content: Tank empty
 
       - type: grid
         columns: 2
         square: false
         cards:
-          - type: tile
+          - type: custom:mushroom-entity-card
             entity: switch.humidifier_power
             name: Humidifier Power
-          - type: tile
+            icon: mdi:air-humidifier
+            tap_action:
+              action: toggle
+          - type: custom:mushroom-entity-card
             entity: humidifier.humidifier
             name: Humidifier Mode
-          - type: tile
+          - type: custom:mushroom-fan-card
             entity: fan.zhimi_de_106389295_za4_s_2_fan
             name: Fan
-          - type: tile
+            show_percentage_control: true
+          - type: custom:mushroom-entity-card
             entity: fan.humidifier_spray_level
             name: Spray Level
 

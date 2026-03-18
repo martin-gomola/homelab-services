@@ -3,24 +3,73 @@ views:
   - title: Home
     path: home
     icon: mdi:home
-    badges:
-      - entity: sensor.plant_01_humidity
-        name: Plant Humidity
-      - entity: sensor.humidifier_humidity
-        name: Humidifier Humidity
-      - entity: binary_sensor.humidifier_tank
-        name: Tank
     cards:
-      - type: glance
-        title: At A Glance
-        columns: 3
-        entities:
-          - entity: person.beskar_labs
-            name: Martin
-          - entity: sensor.cp_to_nova_doba
-            name: To Nova doba
-          - entity: sensor.cp_to_hubeneho
-            name: Back home  
+      - type: custom:mushroom-title-card
+        title: >-
+          {%- if now().hour < 12 -%}Good morning
+          {%- elif now().hour < 18 -%}Good afternoon
+          {%- else -%}Good evening{%- endif -%}, {{ user }}.
+        subtitle: >-
+          {{ states('weather.forecast_home') | capitalize }}
+          · {{ state_attr('weather.forecast_home', 'temperature') }}°C
+
+      - type: custom:mushroom-chips-card
+        chips:
+          - type: entity
+            entity: person.beskar_labs
+            use_entity_picture: true
+            content_info: none
+
+          - type: template
+            entity: sensor.plant_01_soil_moisture
+            icon: mdi:water-percent
+            content: "{{ states('sensor.plant_01_soil_moisture') }}%"
+            icon_color: |-
+              {% set m = states('sensor.plant_01_soil_moisture') | int(0) %}
+              {% if m < 25 %}red
+              {% elif m < 45 %}amber
+              {% else %}green{% endif %}
+            tap_action:
+              action: navigate
+              navigation_path: /house-plants/overview
+
+          - type: template
+            entity: sensor.zhimi_de_319110959_mb4_pm2_5_density_p_3_4
+            icon: mdi:air-filter
+            content: "{{ states('sensor.zhimi_de_319110959_mb4_pm2_5_density_p_3_4') }}"
+            icon_color: |-
+              {% set pm = states('sensor.zhimi_de_319110959_mb4_pm2_5_density_p_3_4') | int(0) %}
+              {% if pm > 120 %}red
+              {% elif pm > 35 %}amber
+              {% else %}green{% endif %}
+
+          - type: template
+            entity: sensor.humidifier_humidity
+            icon: mdi:water
+            content: "{{ states('sensor.humidifier_humidity') }}%"
+            icon_color: |-
+              {% set h = states('sensor.humidifier_humidity') | int(0) %}
+              {% if h < 35 %}red
+              {% elif h < 45 %}amber
+              {% else %}green{% endif %}
+
+          - type: conditional
+            conditions:
+              - entity: binary_sensor.humidifier_tank
+                state: "on"
+            chip:
+              type: template
+              icon: mdi:cup-water
+              icon_color: red
+              content: Tank empty
+
+          - type: entity
+            entity: sensor.cp_to_nova_doba
+            icon: mdi:bus-clock
+            tap_action:
+              action: navigate
+              navigation_path: /house-commute/commute
+
       - type: weather-forecast
         entity: weather.forecast_home
         forecast_type: daily
@@ -73,57 +122,85 @@ views:
         columns: 2
         square: false
         cards:
-          - type: tile
+          - type: custom:mushroom-entity-card
             entity: sensor.plant_01_temperature
-            name: Plant Temperature
-          - type: tile
+            name: Plant
+            icon: mdi:thermometer
+            icon_color: |-
+              {% set t = states('sensor.plant_01_temperature') | float(0) %}
+              {% if t >= 30 %}red
+              {% elif t >= 25 %}amber
+              {% elif t < 10 %}blue
+              {% else %}green{% endif %}
+          - type: custom:mushroom-entity-card
             entity: sensor.humidifier_temperature
-            name: Humidifier Temperature
+            name: Bedroom
+            icon: mdi:thermometer
+            icon_color: |-
+              {% set t = states('sensor.humidifier_temperature') | float(0) %}
+              {% if t >= 30 %}red
+              {% elif t >= 25 %}amber
+              {% elif t < 10 %}blue
+              {% else %}green{% endif %}
 
       - type: grid
         title: Commute Snapshot
         columns: 2
         square: false
         cards:
-          - type: tile
+          - type: custom:mushroom-entity-card
             entity: sensor.cp_to_nova_doba
             name: To Nova doba
             icon: mdi:bus-clock
-          - type: tile
+            tap_action:
+              action: navigate
+              navigation_path: /house-commute/commute
+          - type: custom:mushroom-entity-card
             entity: sensor.cp_to_hubeneho
             name: Back to Hubeneho
             icon: mdi:bus-clock
+            tap_action:
+              action: navigate
+              navigation_path: /house-commute/commute
 
-      - type: markdown
-        content: |
-          ## Quick Controls
+      - type: custom:mushroom-title-card
+        title: Quick Controls
 
       - type: grid
         columns: 2
         square: false
         cards:
-          - type: tile
+          - type: custom:mushroom-light-card
             entity: light.yeelight_stripe_0x12a2e794
             name: Light Strip
-          - type: tile
+            show_brightness_control: true
+            show_color_temp_control: true
+            use_light_color: true
+          - type: custom:mushroom-entity-card
             entity: switch.living_room
-            name: Living Room Switch
-          - type: tile
+            name: Living Room
+            icon: mdi:power-plug
+            tap_action:
+              action: toggle
+          - type: custom:mushroom-entity-card
             entity: switch.kitchen
-            name: Kitchen Switch
-          - type: tile
+            name: Kitchen
+            icon: mdi:power-plug
+            tap_action:
+              action: toggle
+          - type: custom:mushroom-entity-card
             entity: switch.humidifier_power
-            name: Humidifier Power
-          - type: tile
+            name: Humidifier
+            icon: mdi:air-humidifier
+            tap_action:
+              action: toggle
+          - type: custom:mushroom-entity-card
             entity: switch.zhimi_de_319110959_mb4_on_p_2_1
             name: Air Purifier
-          - type: tile
+            icon: mdi:air-purifier
+            tap_action:
+              action: toggle
+          - type: custom:mushroom-fan-card
             entity: fan.zhimi_de_106389295_za4_s_2_fan
             name: Bedroom Fan
-
-      - type: light
-        entity: light.yeelight_stripe_0x12a2e794
-        name: Light Strip Studio
-        brightness: true
-        color_temp: true
-        effect_list: true
+            show_percentage_control: true

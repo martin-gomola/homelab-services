@@ -5,10 +5,78 @@ views:
     icon: mdi:sprout
     type: sidebar
     cards:
-      - type: heading
-        heading: Plant Sensor
-        heading_style: title
-        icon: mdi:leaf
+      - type: custom:mushroom-title-card
+        title: Plant Sensor
+        subtitle: >-
+          Soil {{ states('sensor.plant_01_soil_moisture') }}%
+          · {{ states('sensor.plant_01_temperature') }}°C
+          · Battery {{ states('sensor.plant_01_battery') }}%
+
+      - type: custom:mushroom-chips-card
+        chips:
+          - type: template
+            entity: sensor.plant_01_soil_moisture
+            icon: mdi:water-percent
+            content: "{{ states('sensor.plant_01_soil_moisture') }}%"
+            icon_color: |-
+              {% set m = states('sensor.plant_01_soil_moisture') | int(0) %}
+              {% if m < 25 %}red
+              {% elif m < 45 %}amber
+              {% else %}green{% endif %}
+
+          - type: template
+            entity: sensor.plant_01_soil_fertility
+            icon: mdi:flask-outline
+            content: "{{ states('sensor.plant_01_soil_fertility') }}"
+            icon_color: |-
+              {% set f = states('sensor.plant_01_soil_fertility') | int(0) %}
+              {% if f < 1200 %}red
+              {% elif f < 2000 %}amber
+              {% else %}green{% endif %}
+
+          - type: template
+            entity: sensor.plant_01_illuminance
+            icon: mdi:white-balance-sunny
+            content: "{{ states('sensor.plant_01_illuminance') }} lx"
+            icon_color: |-
+              {% set lx = states('sensor.plant_01_illuminance') | int(0) %}
+              {% if lx < 200 %}red
+              {% elif lx < 1500 %}amber
+              {% else %}green{% endif %}
+
+          - type: template
+            entity: sensor.plant_01_battery
+            icon: >-
+              {% set b = states('sensor.plant_01_battery') | int(0) %}
+              {% if b < 20 %}mdi:battery-low
+              {% elif b < 50 %}mdi:battery-50
+              {% else %}mdi:battery{% endif %}
+            content: "{{ states('sensor.plant_01_battery') }}%"
+            icon_color: |-
+              {% set b = states('sensor.plant_01_battery') | int(0) %}
+              {% if b < 20 %}red
+              {% elif b < 50 %}amber
+              {% else %}green{% endif %}
+
+          - type: conditional
+            conditions:
+              - entity: sensor.plant_01_water_warning
+                state_not: "0"
+            chip:
+              type: template
+              icon: mdi:water-alert
+              icon_color: red
+              content: Needs water
+
+          - type: conditional
+            conditions:
+              - entity: sensor.plant_01_soil_fertility_warning
+                state_not: "0"
+            chip:
+              type: template
+              icon: mdi:alert-circle
+              icon_color: amber
+              content: Low fertility
 
       - type: grid
         title: At A Glance
@@ -35,14 +103,25 @@ views:
               green: 55
               yellow: 35
               red: 20
-          - type: tile
+          - type: custom:mushroom-entity-card
             entity: sensor.plant_01_temperature
             name: Temperature
             icon: mdi:thermometer
-          - type: tile
+            icon_color: |-
+              {% set t = states('sensor.plant_01_temperature') | float(0) %}
+              {% if t >= 30 %}red
+              {% elif t >= 25 %}amber
+              {% elif t < 10 %}blue
+              {% else %}green{% endif %}
+          - type: custom:mushroom-entity-card
             entity: sensor.plant_01_illuminance
             name: Light
             icon: mdi:white-balance-sunny
+            icon_color: |-
+              {% set lx = states('sensor.plant_01_illuminance') | int(0) %}
+              {% if lx < 200 %}deep-purple
+              {% elif lx < 1500 %}amber
+              {% else %}yellow{% endif %}
 
       - type: entities
         title: Plant Health

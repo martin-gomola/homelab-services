@@ -4,10 +4,51 @@ views:
     path: environment
     icon: mdi:leaf-circle-outline
     cards:
-      - type: markdown
-        content: |
-          ## Environment
-          Plant health, air quality, and long-running comfort devices.
+      - type: custom:mushroom-title-card
+        title: Environment
+        subtitle: Plant health, air quality, and comfort devices.
+
+      - type: custom:mushroom-chips-card
+        chips:
+          - type: template
+            entity: sensor.plant_01_soil_moisture
+            icon: mdi:water-percent
+            content: "Soil {{ states('sensor.plant_01_soil_moisture') }}%"
+            icon_color: |-
+              {% set m = states('sensor.plant_01_soil_moisture') | int(0) %}
+              {% if m < 25 %}red
+              {% elif m < 45 %}amber
+              {% else %}green{% endif %}
+
+          - type: template
+            entity: sensor.zhimi_de_319110959_mb4_pm2_5_density_p_3_4
+            icon: mdi:air-filter
+            content: "PM2.5 {{ states('sensor.zhimi_de_319110959_mb4_pm2_5_density_p_3_4') }}"
+            icon_color: |-
+              {% set pm = states('sensor.zhimi_de_319110959_mb4_pm2_5_density_p_3_4') | int(0) %}
+              {% if pm > 120 %}red
+              {% elif pm > 35 %}amber
+              {% else %}green{% endif %}
+
+          - type: template
+            entity: sensor.humidifier_humidity
+            icon: mdi:water
+            content: "Humidity {{ states('sensor.humidifier_humidity') }}%"
+            icon_color: |-
+              {% set h = states('sensor.humidifier_humidity') | int(0) %}
+              {% if h < 35 %}red
+              {% elif h < 45 %}amber
+              {% else %}green{% endif %}
+
+          - type: template
+            entity: sensor.plant_01_battery
+            icon: mdi:battery
+            content: "Battery {{ states('sensor.plant_01_battery') }}%"
+            icon_color: |-
+              {% set b = states('sensor.plant_01_battery') | int(0) %}
+              {% if b < 20 %}red
+              {% elif b < 50 %}amber
+              {% else %}green{% endif %}
 
       - type: grid
         columns: 3
@@ -94,10 +135,9 @@ views:
     path: maintenance
     icon: mdi:wrench-cog-outline
     cards:
-      - type: markdown
-        content: |
-          ## Maintenance
-          Advanced device actions, calibration, and lower-frequency settings.
+      - type: custom:mushroom-title-card
+        title: Maintenance
+        subtitle: Calibration, deep settings, and device actions.
 
       - type: entities
         title: Plant Calibration
