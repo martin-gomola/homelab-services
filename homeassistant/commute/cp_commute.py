@@ -2,6 +2,7 @@
 import argparse
 import html
 import json
+import math
 import re
 import urllib.parse
 import urllib.request
@@ -86,9 +87,10 @@ def resolve_route(args: argparse.Namespace) -> dict:
 
 
 def build_query_params(route: dict, now: datetime) -> dict:
+    query_time = round_up_to_minute(now)
     params = {
-        "date": now.strftime("%d.%m.%Y"),
-        "time": now.strftime("%H:%M"),
+        "date": query_time.strftime("%d.%m.%Y"),
+        "time": query_time.strftime("%H:%M"),
         "f": route["from_stop"],
         "fc": route["from_code"],
         "t": route["to_stop"],
@@ -101,6 +103,12 @@ def build_query_params(route: dict, now: datetime) -> dict:
     if route.get("trt"):
         params["trt"] = ",".join(route["trt"])
     return params
+
+
+def round_up_to_minute(value: datetime) -> datetime:
+    if value.second == 0 and value.microsecond == 0:
+        return value.replace(second=0, microsecond=0)
+    return (value + timedelta(minutes=1)).replace(second=0, microsecond=0)
 
 
 def fetch_page(route: dict) -> tuple[str, str, datetime]:
@@ -149,7 +157,8 @@ def parse_connections(page: str, now: datetime, limit: int) -> list[dict]:
         elif departure_dt < now:
             departure_dt = departure_dt + timedelta(days=1)
 
-        minutes_until = max(0, int((departure_dt - now).total_seconds() // 60))
+        delta_seconds = max(0.0, (departure_dt - now).total_seconds())
+        minutes_until = math.ceil(delta_seconds / 60)
 
         trips.append(
             {
