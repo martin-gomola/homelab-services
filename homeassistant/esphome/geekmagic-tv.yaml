@@ -1,7 +1,7 @@
 esphome:
   name: geekmagic-tv
   friendly_name: GeekMagic TV
-  min_version: 2024.11.0
+  min_version: 2025.1.0
   on_boot:
     priority: 10
     then:
@@ -14,13 +14,6 @@ esphome:
 
 esp8266:
   board: esp01_1m
-
-external_components:
-  - source:
-      type: git
-      url: https://github.com/rletendu/esphome.git
-      ref: st7789_nobuffer_202312
-    components: [st7789v]
 
 wifi:
   ssid: !secret wifi_ssid
@@ -35,7 +28,7 @@ wifi:
 captive_portal:
 
 logger:
-  level: DEBUG
+  level: WARN
   baud_rate: 0
 
 api:
@@ -90,6 +83,7 @@ globals:
     initial_value: "10"
 
 spi:
+  id: spihwd
   clk_pin: GPIO14
   mosi_pin: GPIO13
   interface: hardware
@@ -236,17 +230,23 @@ interval:
             - component.update: display0
 
 display:
-  - platform: st7789v
+  - platform: mipi_spi
     id: display0
-    model: Custom
-    height: 240
-    width: 240
-    offset_height: 0
-    offset_width: 0
-    cs_pin: GPIO15
-    dc_pin: GPIO0
-    reset_pin: GPIO2
-    eightbitcolor: false
+    model: ST7789V
+    spi_id: spihwd
+    dimensions:
+      height: 240
+      width: 240
+      offset_height: 0
+      offset_width: 0
+    buffer_size: 12.5%
+    invert_colors: true
+    dc_pin: GPIO00
+    reset_pin: GPIO02
+    color_depth: 16
+    spi_mode: mode3
+    data_rate: 40000000
+    auto_clear_enabled: false
     update_interval: never
     lambda: |-
       auto w = it.get_width();
