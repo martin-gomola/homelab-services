@@ -27,11 +27,16 @@ wifi:
   password: !secret wifi_password
   fast_connect: true
   power_save_mode: none
+  min_auth_mode: WPA2
   ap:
     ssid: "GeekMagic-TV Fallback"
     password: !secret fallback_password
 
 captive_portal:
+
+logger:
+  level: WARN
+  baud_rate: 0
 
 api:
   actions:
