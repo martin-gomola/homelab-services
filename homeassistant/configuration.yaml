@@ -69,6 +69,12 @@ lovelace:
       icon: mdi:sprout
       show_in_sidebar: true
       filename: dashboards/plants.yaml
+    house-geekmagic:
+      mode: yaml
+      title: GeekMagic TV
+      icon: mdi:television
+      show_in_sidebar: true
+      filename: dashboards/geekmagic.yaml
 
 automation: !include automations.yaml
 script: !include scripts.yaml

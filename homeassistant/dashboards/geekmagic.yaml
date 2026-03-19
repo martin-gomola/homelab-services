@@ -1,0 +1,280 @@
+title: GeekMagic TV
+views:
+  - title: Display
+    path: display
+    icon: mdi:television
+    cards:
+      - type: custom:mushroom-title-card
+        title: GeekMagic TV
+        subtitle: >-
+          {% if is_state('binary_sensor.geekmagic_tv_status', 'on') -%}
+            Online · {{ states('sensor.geekmagic_tv_wifi_signal') }} dBm
+          {%- else -%}
+            Offline
+          {%- endif %}
+
+      - type: custom:mushroom-chips-card
+        chips:
+          - type: template
+            entity: sensor.geekmagic_tv_wifi_signal
+            icon: >-
+              {% set s = states('sensor.geekmagic_tv_wifi_signal') | int(-100) %}
+              {% if s > -50 %}mdi:wifi-strength-4
+              {% elif s > -65 %}mdi:wifi-strength-3
+              {% elif s > -75 %}mdi:wifi-strength-2
+              {% elif s > -85 %}mdi:wifi-strength-1
+              {% else %}mdi:wifi-strength-outline{% endif %}
+            content: "{{ states('sensor.geekmagic_tv_wifi_signal') }} dBm"
+            icon_color: >-
+              {% set s = states('sensor.geekmagic_tv_wifi_signal') | int(-100) %}
+              {% if s > -50 %}green
+              {% elif s > -70 %}amber
+              {% else %}red{% endif %}
+
+          - type: template
+            entity: sensor.geekmagic_tv_uptime
+            icon: mdi:clock-outline
+            content: >-
+              {% set up = states('sensor.geekmagic_tv_uptime') | int(0) %}
+              {% set h = (up / 3600) | int %}
+              {% set m = ((up % 3600) / 60) | int %}
+              {{ h }}h {{ m }}m
+            icon_color: teal
+
+          - type: template
+            entity: switch.geekmagic_tv_page_rotation
+            icon: >-
+              {% if is_state('switch.geekmagic_tv_page_rotation', 'on') %}
+                mdi:autorenew
+              {% else %}
+                mdi:pause-circle-outline
+              {% endif %}
+            content: >-
+              {% if is_state('switch.geekmagic_tv_page_rotation', 'on') %}
+                Auto-rotate
+              {% else %}
+                Fixed page
+              {% endif %}
+            icon_color: >-
+              {% if is_state('switch.geekmagic_tv_page_rotation', 'on') %}
+                purple
+              {% else %}
+                grey
+              {% endif %}
+
+      - type: custom:mushroom-title-card
+        title: ""
+        subtitle: Backlight
+
+      - type: custom:mushroom-light-card
+        entity: light.geekmagic_tv_backlight
+        name: Display Backlight
+        show_brightness_control: true
+        use_light_color: false
+        icon: mdi:brightness-6
+        layout: horizontal
+        fill_container: true
+
+      - type: custom:mushroom-title-card
+        title: ""
+        subtitle: Page Control
+
+      - type: grid
+        columns: 3
+        square: false
+        cards:
+          - type: custom:mushroom-template-card
+            entity: button.geekmagic_tv_previous_page
+            icon: mdi:chevron-left-circle
+            icon_color: blue
+            primary: Previous
+            secondary: ""
+            layout: vertical
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.geekmagic_tv_previous_page
+
+          - type: custom:mushroom-entity-card
+            entity: switch.geekmagic_tv_page_rotation
+            name: Auto Rotate
+            icon: mdi:autorenew
+            icon_color: purple
+            tap_action:
+              action: toggle
+            layout: vertical
+
+          - type: custom:mushroom-template-card
+            entity: button.geekmagic_tv_next_page
+            icon: mdi:chevron-right-circle
+            icon_color: blue
+            primary: Next
+            secondary: ""
+            layout: vertical
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.geekmagic_tv_next_page
+
+      - type: custom:mushroom-title-card
+        title: ""
+        subtitle: Display Pages
+
+      - type: grid
+        columns: 3
+        square: true
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Clock
+            secondary: Weather + soil
+            icon: mdi:clock-outline
+            icon_color: peach
+            layout: vertical
+            tap_action:
+              action: call-service
+              service: esphome.geekmagic_tv_set_page
+              data:
+                page: 1
+
+          - type: custom:mushroom-template-card
+            primary: Garden
+            secondary: All sensors
+            icon: mdi:sprout
+            icon_color: green
+            layout: vertical
+            tap_action:
+              action: call-service
+              service: esphome.geekmagic_tv_set_page
+              data:
+                page: 2
+
+          - type: custom:mushroom-template-card
+            primary: System
+            secondary: WiFi + uptime
+            icon: mdi:chip
+            icon_color: blue
+            layout: vertical
+            tap_action:
+              action: call-service
+              service: esphome.geekmagic_tv_set_page
+              data:
+                page: 3
+
+      - type: custom:mushroom-title-card
+        title: ""
+        subtitle: Notifications
+
+      - type: entities
+        entities:
+          - type: custom:mushroom-template-card
+            primary: Send Notification
+            secondary: Push a message to the display
+            icon: mdi:bell-ring-outline
+            icon_color: amber
+            tap_action:
+              action: call-service
+              service: esphome.geekmagic_tv_notify
+              data:
+                message: Hello from HA!
+                timeout: 15
+
+      - type: custom:mushroom-title-card
+        title: ""
+        subtitle: Device Info
+
+      - type: entities
+        show_header_toggle: false
+        entities:
+          - entity: sensor.geekmagic_tv_wifi_signal
+            name: WiFi Signal
+            icon: mdi:wifi
+          - entity: sensor.geekmagic_tv_uptime
+            name: Uptime
+            icon: mdi:timer-outline
+          - entity: button.geekmagic_tv_restart
+            name: Restart Device
+            icon: mdi:restart
+
+  - title: Notify
+    path: notify
+    icon: mdi:bell-outline
+    cards:
+      - type: custom:mushroom-title-card
+        title: Send Notification
+        subtitle: Push a custom message to the GeekMagic TV display.
+
+      - type: markdown
+        content: >-
+          Use the **Developer Tools → Actions** panel to call
+          `esphome.geekmagic_tv_notify` with:
+
+
+          ```yaml
+
+          message: "Your message here"
+
+          timeout: 15
+
+          ```
+
+
+          Or create an automation that triggers the notification
+          when something happens (door opens, timer ends, etc.).
+
+      - type: custom:mushroom-title-card
+        title: ""
+        subtitle: Quick Messages
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Water Plants
+            icon: mdi:watering-can
+            icon_color: blue
+            layout: vertical
+            tap_action:
+              action: call-service
+              service: esphome.geekmagic_tv_notify
+              data:
+                message: "Time to water the plants!"
+                timeout: 30
+
+          - type: custom:mushroom-template-card
+            primary: Meeting Soon
+            icon: mdi:calendar-clock
+            icon_color: red
+            layout: vertical
+            tap_action:
+              action: call-service
+              service: esphome.geekmagic_tv_notify
+              data:
+                message: "Meeting starting soon"
+                timeout: 60
+
+          - type: custom:mushroom-template-card
+            primary: Dinner Ready
+            icon: mdi:food
+            icon_color: peach
+            layout: vertical
+            tap_action:
+              action: call-service
+              service: esphome.geekmagic_tv_notify
+              data:
+                message: "Dinner is ready!"
+                timeout: 30
+
+          - type: custom:mushroom-template-card
+            primary: Clear Display
+            icon: mdi:bell-off-outline
+            icon_color: grey
+            layout: vertical
+            tap_action:
+              action: call-service
+              service: esphome.geekmagic_tv_notify
+              data:
+                message: ""
+                timeout: 1
