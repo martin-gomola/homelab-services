@@ -1,10 +1,11 @@
-# Home Assistant + Zigbee2MQTT
+# Home Assistant + Zigbee2MQTT + ESPHome
 
 Beginner-friendly smart home stack with:
 
 - Home Assistant for automations and dashboards
 - Mosquitto as the MQTT broker
 - Zigbee2MQTT for Zigbee devices
+- ESPHome for ESP32/ESP8266 firmware management
 - SONOFF Dongle Max as the Zigbee coordinator
 
 ## What You Get
@@ -12,6 +13,7 @@ Beginner-friendly smart home stack with:
 | Service | URL | Purpose |
 |---------|-----|---------|
 | Home Assistant | `http://localhost:8123` | Main smart home UI |
+| ESPHome | `http://localhost:6052` | Build, flash, and manage ESP firmware |
 | Zigbee2MQTT | `http://localhost:8099` | Pair and manage Zigbee devices |
 | Mosquitto | `localhost:1883` | MQTT broker for HA and Zigbee2MQTT |
 
@@ -346,6 +348,54 @@ ZIGBEE_DEVICE=/dev/ttyACM0
 
 Then update `docker-compose.yml` to uncomment the `devices:` mapping for `zigbee2mqtt`.
 
+## ESPHome
+
+ESPHome lets you create and manage firmware for ESP32/ESP8266 devices from a web dashboard. You write YAML configs, ESPHome compiles them into firmware, and flashes the devices over Wi-Fi (OTA) or USB.
+
+### Getting started
+
+1. Open ESPHome at `http://localhost:6052`
+2. Click `NEW DEVICE`
+3. Give it a name and choose your board type (e.g. `esp32dev`, `esp8266`)
+4. ESPHome generates a YAML config you can edit
+5. Click `INSTALL` to compile and flash over USB (first time) or OTA (after first flash)
+
+### First flash
+
+The very first flash of a new device must be done over USB or by downloading the compiled binary and flashing it manually (e.g. with ESPHome Web at `web.esphome.io`).
+
+After the first flash, ESPHome can update the device over Wi-Fi (OTA).
+
+### Home Assistant integration
+
+After flashing, the device is auto-discovered by Home Assistant through the `ESPHome` integration. Accept the discovery notification in Home Assistant to add the device.
+
+### GeekMagic displays
+
+For GeekMagic SmallTV devices (ESP8266/ESP32-based), you have two options:
+
+1. **Stock firmware + HACS integration**: Use the [geekmagic-hacs](https://github.com/adrienbrault/geekmagic-hacs) custom integration. It renders dashboards server-side and pushes images to the device over HTTP. No flashing needed.
+
+2. **ESPHome firmware**: Flash ESPHome firmware for full local control. This gives you direct sensor/display integration but requires a compatible device and initial USB flash.
+
+The stock firmware approach is simpler and works without flashing. Use ESPHome when you want full local control or custom sensor integration.
+
+### Config storage
+
+ESPHome configs are stored in:
+
+```text
+${DATA_DIR}/homeassistant/esphome/
+```
+
+### Proxy setup
+
+If you want remote access to the ESPHome dashboard:
+
+```text
+esphome.domain.com -> server:6052
+```
+
 ## Troubleshooting
 
 ### Check container status
@@ -361,6 +411,7 @@ make logs
 docker compose logs -f zigbee2mqtt
 docker compose logs -f homeassistant
 docker compose logs -f mosquitto
+docker compose logs -f esphome
 ```
 
 ### Check the SONOFF network port
@@ -505,6 +556,7 @@ is not enabled automatically by the Docker Compose files in this repo.
 Example reverse proxy targets:
 
 - `my.home.martingomola.com -> server:8123`
+- `esphome.domain.com -> server:6052`
 - `zigbee.domain.com -> server:8099`
 
-Enable WebSockets for Home Assistant if your proxy requires that setting.
+Enable WebSockets for Home Assistant and ESPHome if your proxy requires that setting.

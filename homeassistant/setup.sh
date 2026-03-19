@@ -7,25 +7,26 @@ source "${SCRIPT_DIR}/.env"
 DATA_DIR="${DATA_DIR:-/srv/docker}"
 HA_DIR="${DATA_DIR}/homeassistant"
 
-echo "=== Home Assistant + Zigbee2MQTT Setup ==="
+echo "=== Home Assistant + Zigbee2MQTT + ESPHome Setup ==="
 echo ""
 
 # Create data directories
-echo "[1/4] Creating data directories..."
+echo "[1/5] Creating data directories..."
 mkdir -p "${HA_DIR}/config"
 mkdir -p "${HA_DIR}/media"
 mkdir -p "${HA_DIR}/mosquitto/config"
 mkdir -p "${HA_DIR}/mosquitto/data"
 mkdir -p "${HA_DIR}/mosquitto/log"
 mkdir -p "${HA_DIR}/zigbee2mqtt"
+mkdir -p "${HA_DIR}/esphome"
 echo "  -> ${HA_DIR}/"
 
 # Copy Mosquitto config
-echo "[2/4] Configuring Mosquitto..."
+echo "[2/5] Configuring Mosquitto..."
 cp "${SCRIPT_DIR}/mosquitto/mosquitto.conf" "${HA_DIR}/mosquitto/config/mosquitto.conf"
 
 # Create Mosquitto password file
-echo "[3/4] Creating MQTT credentials..."
+echo "[3/5] Creating MQTT credentials..."
 MQTT_USER="${MQTT_USER:-mqtt}"
 MQTT_PASSWORD="${MQTT_PASSWORD:?MQTT_PASSWORD must be set in .env}"
 
@@ -38,7 +39,7 @@ rm -f "${TEMP_PASSWD}"
 echo "  -> MQTT user '${MQTT_USER}' configured"
 
 # Copy Zigbee2MQTT config
-echo "[4/4] Configuring Zigbee2MQTT..."
+echo "[4/5] Configuring Zigbee2MQTT..."
 if [ ! -f "${HA_DIR}/zigbee2mqtt/configuration.yaml" ]; then
   cp "${SCRIPT_DIR}/zigbee2mqtt/configuration.yaml" "${HA_DIR}/zigbee2mqtt/configuration.yaml"
   echo "  -> configuration.yaml created"
@@ -95,6 +96,10 @@ mqtt_password: ${MQTT_PASSWORD}
 SECRETS
 echo "  -> Zigbee2MQTT secrets written"
 
+# ESPHome
+echo "[5/5] ESPHome config directory ready..."
+echo "  -> ${HA_DIR}/esphome/"
+
 echo ""
 echo "=== Setup Complete ==="
 echo ""
@@ -103,8 +108,9 @@ echo "  1. Run: cd ${SCRIPT_DIR} && make up"
 echo "     or: cd ${SCRIPT_DIR} && docker compose up -d"
 echo "  2. Review configs in ${HA_DIR}/ if needed"
 echo "  3. Open Home Assistant: http://localhost:${HA_PORT:-8123}"
-echo "  4. Open Zigbee2MQTT UI: http://localhost:${Z2M_PORT:-8099}"
-echo "  5. In HA, add MQTT integration (Settings > Integrations > MQTT)"
+echo "  4. Open ESPHome:        http://localhost:${ESPHOME_PORT:-6052}"
+echo "  5. Open Zigbee2MQTT UI: http://localhost:${Z2M_PORT:-8099}"
+echo "  6. In HA, add MQTT integration (Settings > Integrations > MQTT)"
 echo "     - Broker: localhost"
 echo "     - Port: 1883"
 echo "     - User/Pass: from your .env"

@@ -23,6 +23,7 @@ This repo is the worker-services layer of the homelab. In the current split:
 | **Uptime Kuma** | 3006 | uptime.domain.com | Monitoring & status page |
 | **Umami** | 3025 | stats.domain.com | Lightweight analytics (PostgreSQL only) |
 | **Home Assistant** | 8123 | home.domain.com | Smart home automation (Zigbee2MQTT + MQTT) |
+| **ESPHome** | 6052 | esphome.domain.com | ESP32/ESP8266 firmware builder & OTA manager |
 
 ## Quick Start
 
