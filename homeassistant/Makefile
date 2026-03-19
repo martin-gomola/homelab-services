@@ -1,4 +1,4 @@
-.PHONY: help setup up down restart logs ps codex-mcp-install tuya-local-install dashboard-install config-install update
+.PHONY: help setup up down restart logs ps codex-mcp-install tuya-local-install dashboard-install config-install esphome-install update
 
 .DEFAULT_GOAL := help
 
@@ -16,6 +16,7 @@ help:
 	@echo "  tuya-local-install - Install pinned tuya_local custom component and repo overlays"
 	@echo "  dashboard-install - Sync tracked dashboard YAML files into live Home Assistant config"
 	@echo "  config-install - Sync tracked Home Assistant base config into live Home Assistant config"
+	@echo "  esphome-install - Sync tracked ESPHome device configs to the ESPHome Dashboard"
 	@echo "  update - Sync tracked Home Assistant config and dashboards into live Home Assistant config"
 
 setup:
@@ -48,4 +49,7 @@ dashboard-install:
 config-install:
 	bash ./scripts/install-config-overlays.sh
 
-update: config-install dashboard-install
+esphome-install:
+	bash ./scripts/install-esphome-configs.sh
+
+update: config-install dashboard-install esphome-install
