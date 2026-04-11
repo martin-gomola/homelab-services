@@ -22,7 +22,7 @@ This repo runs the worker-side services in the homelab fleet. Current split:
 | **Grocy** | 9283 | grocy.domain.com | Household management |
 | **Uptime Kuma** | 3006 | uptime.domain.com | Monitoring & status page |
 | **Umami** | 3025 | stats.domain.com | Lightweight analytics (PostgreSQL only) |
-| **Audiobookshelf** | 13378 | books.domain.com | Audiobooks & podcasts, WebSockets required |
+| **Audiobookshelf** | 13378 | knihy.martingomola.com | Audiobooks & podcasts, WebSockets required |
 | **Home Assistant** | 8123 | home.domain.com | Smart home automation (Zigbee2MQTT + MQTT) |
 | **ESPHome** | 6052 | esphome.domain.com | ESP32/ESP8266 firmware builder & OTA manager |
 
