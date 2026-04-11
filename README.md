@@ -22,6 +22,7 @@ This repo is the worker-services layer of the homelab. In the current split:
 | **Grocy** | 9283 | grocy.domain.com | Household management |
 | **Uptime Kuma** | 3006 | uptime.domain.com | Monitoring & status page |
 | **Umami** | 3025 | stats.domain.com | Lightweight analytics (PostgreSQL only) |
+| **Audiobookshelf** | 13378 | books.domain.com | Audiobooks & podcasts, WebSockets required |
 | **Home Assistant** | 8123 | home.domain.com | Smart home automation (Zigbee2MQTT + MQTT) |
 | **ESPHome** | 6052 | esphome.domain.com | ESP32/ESP8266 firmware builder & OTA manager |
 
@@ -62,7 +63,7 @@ BACKUP_DIR=$HOME/srv/backups
 Configure in Nginx Proxy Manager (via [pi-commander](https://github.com/martin-gomola/pi-commander)):
 1. Forward `service.domain.com` → `server-ip:port`
 2. Enable SSL
-3. Enable WebSockets where needed (Affine)
+3. Enable WebSockets where needed (Affine, Audiobookshelf)
 
 ## Troubleshooting
 
