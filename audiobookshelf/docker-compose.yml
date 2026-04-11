@@ -12,6 +12,7 @@ services:
       - "${ABS_PORT:-13378}:80"
     volumes:
       - ${DATA_DIR:-/srv/docker}/audiobookshelf/audiobooks:/audiobooks
+      - ${DATA_DIR:-/srv/docker}/audiobookshelf/audiobooks:/ebooks
       - ${DATA_DIR:-/srv/docker}/audiobookshelf/podcasts:/podcasts
       - ${DATA_DIR:-/srv/docker}/audiobookshelf/metadata:/metadata
       - ${DATA_DIR:-/srv/docker}/audiobookshelf/config:/config

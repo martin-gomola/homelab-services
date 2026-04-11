@@ -32,7 +32,7 @@ If you already keep your media somewhere else, change the host-side volume paths
 
 ## Reverse Proxy
 
-- Recommended host: `knihy.martingomola.com`
+- Recommended host: `ebooks.yourdomain.com`
 - Enable WebSockets in Nginx Proxy Manager
 - If you publish large uploads, raise the proxy body size limit
 
