@@ -1,12 +1,12 @@
 # Homelab Services
 
-Docker Compose stacks for self-hosted applications. Works with [pi-commander](https://github.com/martin-gomola/pi-commander).
+Docker Compose stacks for the self-hosted services that ride with [pi-commander](https://github.com/martin-gomola/pi-commander).
 
-This repo is the worker-services layer of the homelab. In the current split:
+This repo runs the worker-side services in the homelab fleet. Current split:
 
-- `pi-commander` stays the stable control plane on `192.168.1.190`
+- `pi-commander` holds the control plane on `192.168.1.190`
 - `homelab-services` runs on the Mac mini worker host `192.168.1.200`
-- `mythosaur-tools` is the shared MCP gateway for AI operations against Home Assistant, AdGuard, and other remote services
+- `mythosaur-tools` runs the shared MCP gateway for AI work against Home Assistant, AdGuard, and other remote services
 
 ## Services
 
@@ -50,7 +50,7 @@ make clean                 # Prune Docker resources
 
 ## Data Storage
 
-All data stored in `${DATA_DIR}/<service>/` (defaults to `/srv/docker/<service>/`).
+Each service stores its data in `${DATA_DIR}/<service>/` and falls back to `/srv/docker/<service>/`.
 
 **macOS users:** Add to your `.env`:
 ```bash
@@ -60,7 +60,7 @@ BACKUP_DIR=$HOME/srv/backups
 
 ## Proxy Setup
 
-Configure in Nginx Proxy Manager (via [pi-commander](https://github.com/martin-gomola/pi-commander)):
+Set up each host in Nginx Proxy Manager through [pi-commander](https://github.com/martin-gomola/pi-commander):
 1. Forward `service.domain.com` → `server-ip:port`
 2. Enable SSL
 3. Enable WebSockets where needed (Affine, Audiobookshelf)
@@ -80,9 +80,9 @@ sudo chown -R 1000:1000 /srv/docker/<service>/
 
 | Repo | What it does |
 |------|--------------|
-| [pi-commander](https://github.com/martin-gomola/pi-commander) | Infrastructure — reverse proxy (NPM), DNS (AdGuard), VPN (Tailscale), DDNS (Cloudflare) |
-| [mythosaur-ai](https://github.com/martin-gomola/mythosaur-ai) | Mattermost runtime — Grogu local operator bot and Mythosaur Codex-first planner |
-| [mythosaur-tools](https://github.com/martin-gomola/mythosaur-tools) | Shared MCP gateway — Home Assistant, AdGuard, pi-commander, Google, browser/search/fetch |
+| [pi-commander](https://github.com/martin-gomola/pi-commander) | Infrastructure stack: reverse proxy (NPM), DNS (AdGuard), VPN (Tailscale), DDNS (Cloudflare) |
+| [mythosaur-ai](https://github.com/martin-gomola/mythosaur-ai) | Mattermost runtime: Grogu local operator bot and Mythosaur Codex-first planner |
+| [mythosaur-tools](https://github.com/martin-gomola/mythosaur-tools) | Shared MCP gateway: Home Assistant, AdGuard, pi-commander, Google, browser, and fetch |
 | **homelab-services** (this repo) | Self-hosted applications |
 
 ---

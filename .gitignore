@@ -55,3 +55,6 @@ tmp/
 temp/
 *.tmp
 snapshot.json
+
+# OMX runtime state
+.omx/
