@@ -1,29 +1,26 @@
 # Audiobookshelf
 
-Self-hosted audiobook and podcast server with multi-user playback sync. Requires WebSockets behind the reverse proxy.
+Self-hosted audiobook and podcast server with multi-user playback sync. Reverse proxies must support WebSockets.
 
 ## Setup
 
 ```bash
 cp .env.example .env
-nano .env
+$EDITOR .env
 docker compose up -d
 ```
 
-If you want to preload the email settings for "Send to E-Reader", fill the `ABS_EMAIL_*` and `ABS_ADMIN_*` values in `.env`, create the admin account in the web UI once, then run:
-
-```bash
-./bootstrap-email-settings.sh
-```
+Then open `http://localhost:13378` and create the admin account in the web UI.
 
 ## Access
 
 - Web UI: `http://localhost:13378`
-- First run: open the web UI and create the admin account
+- Default API base URL for helper scripts: `http://localhost:13378`
 
 ## Storage Layout
 
 - `/audiobooks` -> `${DATA_DIR}/audiobookshelf/audiobooks`
+- `/ebooks` -> `${DATA_DIR}/audiobookshelf/ebooks`
 - `/podcasts` -> `${DATA_DIR}/audiobookshelf/podcasts`
 - `/metadata` -> `${DATA_DIR}/audiobookshelf/metadata`
 - `/config` -> `${DATA_DIR}/audiobookshelf/config`
@@ -33,11 +30,21 @@ If you already keep your media somewhere else, change the host-side volume paths
 ## Reverse Proxy
 
 - Recommended host: `ebooks.yourdomain.com`
-- Enable WebSockets in Nginx Proxy Manager
-- If you publish large uploads, raise the proxy body size limit
-
-The upstream project explicitly documents WebSocket support as required for reverse proxies.
+- Enable WebSockets in Nginx Proxy Manager or your reverse proxy of choice
+- Raise the body size limit if you expect large uploads
 
 ## Email Bootstrap
 
-Audiobookshelf stores SMTP settings in its own database, not as native container env vars. This repo keeps the values in `.env` for convenience and uses `bootstrap-email-settings.sh` to push them through the API after your admin account exists.
+Audiobookshelf stores SMTP settings in its own database, not as native container environment variables. This repo keeps those values in `.env` and provides `bootstrap-email-settings.sh` to push them through the API.
+
+Run the bootstrap only after:
+
+1. `docker compose up -d` is complete
+2. the admin account already exists in the web UI
+3. `ABS_BASE_URL` is reachable from the machine running the script
+
+When those conditions are met:
+
+```bash
+./bootstrap-email-settings.sh
+```

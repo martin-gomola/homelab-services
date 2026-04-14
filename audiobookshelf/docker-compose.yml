@@ -2,7 +2,7 @@ name: audiobookshelf
 
 services:
   audiobookshelf:
-    image: ghcr.io/advplyr/audiobookshelf:${ABS_VERSION:-latest}
+    image: ghcr.io/advplyr/audiobookshelf:${ABS_VERSION:-2.33.1}
     container_name: audiobookshelf
     env_file:
       - .env
@@ -12,7 +12,7 @@ services:
       - "${ABS_PORT:-13378}:80"
     volumes:
       - ${DATA_DIR:-/srv/docker}/audiobookshelf/audiobooks:/audiobooks
-      - ${DATA_DIR:-/srv/docker}/audiobookshelf/audiobooks:/ebooks
+      - ${DATA_DIR:-/srv/docker}/audiobookshelf/ebooks:/ebooks
       - ${DATA_DIR:-/srv/docker}/audiobookshelf/podcasts:/podcasts
       - ${DATA_DIR:-/srv/docker}/audiobookshelf/metadata:/metadata
       - ${DATA_DIR:-/srv/docker}/audiobookshelf/config:/config
