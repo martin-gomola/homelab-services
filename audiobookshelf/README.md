@@ -16,6 +16,7 @@ Then open `http://localhost:13378` and create the admin account in the web UI.
 
 - Web UI: `http://localhost:13378`
 - Default API base URL for helper scripts: `http://localhost:13378`
+- Cover images are proxied through an nginx cache layer before they hit the ABS container
 
 ## Storage Layout
 
@@ -24,6 +25,7 @@ Then open `http://localhost:13378` and create the admin account in the web UI.
 - `/podcasts` -> `${DATA_DIR}/audiobookshelf/podcasts`
 - `/metadata` -> `${DATA_DIR}/audiobookshelf/metadata`
 - `/config` -> `${DATA_DIR}/audiobookshelf/config`
+- `/var/cache/nginx/abs-covers` -> `${DATA_DIR}/audiobookshelf/nginx-cache`
 
 If you already keep your media somewhere else, change the host-side volume paths in `docker-compose.yml`.
 
@@ -32,6 +34,7 @@ If you already keep your media somewhere else, change the host-side volume paths
 - Recommended host: `ebooks.yourdomain.com`
 - Enable WebSockets in Nginx Proxy Manager or your reverse proxy of choice
 - Raise the body size limit if you expect large uploads
+- The local nginx sidecar caches `/api/items/:id/cover` responses and adds `X-Cache-Status` headers (`MISS`, `HIT`, etc.) for verification
 
 ## Email Bootstrap
 

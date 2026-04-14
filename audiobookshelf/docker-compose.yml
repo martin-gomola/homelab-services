@@ -8,8 +8,8 @@ services:
       - .env
     environment:
       TZ: ${TZ:-UTC}
-    ports:
-      - "${ABS_PORT:-13378}:80"
+    expose:
+      - "80"
     volumes:
       - ${DATA_DIR:-/srv/docker}/audiobookshelf/audiobooks:/audiobooks
       - ${DATA_DIR:-/srv/docker}/audiobookshelf/ebooks:/ebooks
@@ -31,3 +31,21 @@ services:
     security_opt:
       - no-new-privileges:true
     stop_grace_period: 30s
+
+  audiobookshelf-proxy:
+    image: nginx:1.27-alpine
+    container_name: audiobookshelf-proxy
+    depends_on:
+      - audiobookshelf
+    ports:
+      - "${ABS_PORT:-13378}:8080"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ${DATA_DIR:-/srv/docker}/audiobookshelf/nginx-cache:/var/cache/nginx/abs-covers
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
