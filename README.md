@@ -25,6 +25,7 @@ This repo runs the worker-side services in the homelab fleet. Current split:
 | **Audiobookshelf** | 13378 | knihy.martingomola.com | Audiobooks & podcasts, WebSockets required |
 | **Home Assistant** | 8123 | home.domain.com | Smart home automation (Zigbee2MQTT + MQTT) |
 | **ESPHome** | 6052 | esphome.domain.com | ESP32/ESP8266 firmware builder & OTA manager |
+| **TRIP** | 8050 | trip.domain.com | POI map tracker & trip planner (SQLite) |
 
 ## Quick Start
 
