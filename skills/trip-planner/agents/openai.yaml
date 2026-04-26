@@ -1,7 +1,0 @@
-interface:
-  display_name: "TRIP Planner"
-  short_description: "Plan roadtrips in the local TRIP service"
-  default_prompt: "Use $trip-planner to plan and save a roadtrip in the local TRIP service."
-
-policy:
-  allow_implicit_invocation: true
