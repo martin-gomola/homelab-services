@@ -58,3 +58,5 @@ snapshot.json
 
 # OMX runtime state
 .omx/
+# Added by code-review-graph
+.code-review-graph/

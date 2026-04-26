@@ -1,0 +1,7 @@
+interface:
+  display_name: "TRIP Planner"
+  short_description: "Manage the local TRIP homelab service"
+  default_prompt: "Use $trip-planner to restore or manage the local TRIP homelab service."
+
+policy:
+  allow_implicit_invocation: true

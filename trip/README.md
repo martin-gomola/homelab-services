@@ -44,7 +44,10 @@ Key env vars (full list in `.env.example`):
 |-----|---------|-------|
 | `TRIP_PORT` | `8050` | Host port for the web UI |
 | `TRIP_VERSION` | `1` | Image tag (`ghcr.io/itskovacs/trip:1`) |
+| `TRIP_DOMAIN` / `TRIP_BASE_URL` | _unset_ | Public domain and URL for reverse proxy / integrations |
 | `REGISTER_ENABLE` | `false` | Disable open sign-ups |
+| `DEFAULT_MAP_LAT` / `DEFAULT_MAP_LNG` | _unset_ | Default map center |
+| `TRIP_API_TOKEN` | _unset_ | Secret token for integrations; keep out of git |
 | `OIDC_*` | _unset_ | Set all four to enable SSO |
 | `ATTACHMENT_MAX_SIZE` | `10485760` | 10 MB; raise reverse-proxy body limit too |
 
