@@ -10,6 +10,8 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
+import subprocess
 import sys
 import urllib.error
 import urllib.request
@@ -75,9 +77,337 @@ API_DOC_SOURCES = [
     "https://itskovacs.github.io/trip/docs/trip-api/place-google-search/",
 ]
 
+ROADTRIP_TEMPLATE: dict[str, Any] = {
+    "trip": {
+        "name": "Example Roadtrip",
+        "currency": "EUR",
+        "notes": "Assumptions, sources, and booking notes go here.",
+    },
+    "places": [
+        {
+            "key": "destination",
+            "name": "Destination name",
+            "category": "Accommodation",
+            "lat": 48.0,
+            "lng": 17.0,
+            "place": "Street, city, country",
+            "description": "Why this place matters and source URL.",
+            "favorite": True,
+            "visited": False,
+        }
+    ],
+    "days": [
+        {
+            "label": "Day 1 - Travel",
+            "date": "2026-05-08",
+            "notes": "Day-level notes.",
+            "items": [
+                {
+                    "time": "09:00",
+                    "text": "Depart from home",
+                    "comment": "Placeholder until route is confirmed.",
+                    "lat": 48.1961,
+                    "lng": 17.1388,
+                    "status": "pending",
+                },
+                {
+                    "time": "12:30",
+                    "text": "Arrive at destination",
+                    "comment": "Confirm check-in time.",
+                    "place": "destination",
+                    "status": "pending",
+                },
+            ],
+        }
+    ],
+}
+
+ROADTRIP_STATUSES = {"pending", "booked", "constraint", "optional"}
+TIME_RE = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
+
 
 class TripApiError(RuntimeError):
     pass
+
+
+CONTAINER_ROADTRIP_CODE = r"""
+import json
+import sys
+from datetime import date
+
+from sqlalchemy.orm import selectinload
+from sqlmodel import Session, select
+
+from trip.db.core import get_engine
+from trip.models.models import (
+    Category,
+    Place,
+    Trip,
+    TripDay,
+    TripItem,
+    TripItemStatusEnum,
+    User,
+)
+
+
+def parse_date(value):
+    if not value:
+        return None
+    return date.fromisoformat(value)
+
+
+def choose_user(session, requested):
+    if requested:
+        user = session.get(User, requested)
+        if not user:
+            raise SystemExit(f"Unknown TRIP user: {requested}")
+        return requested
+    user = session.exec(select(User).order_by(User.is_admin.desc(), User.username)).first()
+    if not user:
+        raise SystemExit("No TRIP users exist")
+    return user.username
+
+
+def load_trip(session, user, name):
+    return session.exec(
+        select(Trip)
+        .options(selectinload(Trip.places), selectinload(Trip.days).selectinload(TripDay.items))
+        .where(Trip.user == user, Trip.name == name)
+    ).first()
+
+
+def serialize_trip(trip):
+    days = sorted(trip.days, key=lambda day: (day.dt is None, day.dt or date.max, day.label))
+    return {
+        "id": trip.id,
+        "name": trip.name,
+        "notes": trip.notes,
+        "places": [
+            {
+                "id": place.id,
+                "name": place.name,
+                "place": place.place,
+                "lat": place.lat,
+                "lng": place.lng,
+            }
+            for place in trip.places
+        ],
+        "days": [
+            {
+                "id": day.id,
+                "label": day.label,
+                "date": day.dt.isoformat() if day.dt else None,
+                "item_count": len(day.items),
+                "items": [
+                    {
+                        "id": item.id,
+                        "time": item.time,
+                        "text": item.text,
+                        "place_id": item.place_id,
+                        "lat": item.lat,
+                        "lng": item.lng,
+                        "status": item.status.value if item.status else None,
+                    }
+                    for item in sorted(day.items, key=lambda item: item.time)
+                ],
+            }
+            for day in days
+        ],
+    }
+
+
+def upsert_place(session, user, spec):
+    category_name = spec.get("category") or "Accommodation"
+    category = session.exec(select(Category).where(Category.user == user, Category.name == category_name)).first()
+    if not category:
+        raise SystemExit(f"Unknown category for {spec.get('name')}: {category_name}")
+    place = session.exec(select(Place).where(Place.user == user, Place.name == spec["name"])).first()
+    created = False
+    changed = False
+    if not place:
+        place = Place(
+            name=spec["name"],
+            lat=float(spec["lat"]),
+            lng=float(spec["lng"]),
+            place=spec["place"],
+            category_id=category.id,
+            user=user,
+        )
+        session.add(place)
+        created = True
+        changed = True
+    for key in ["lat", "lng"]:
+        if key in spec and getattr(place, key) != float(spec[key]):
+            setattr(place, key, float(spec[key]))
+            changed = True
+    for key in ["place", "description", "allowdog", "favorite", "visited", "restroom", "price", "duration", "gpx"]:
+        if key in spec and getattr(place, key) != spec[key]:
+            setattr(place, key, spec[key])
+            changed = True
+    if place.category_id != category.id:
+        place.category_id = category.id
+        changed = True
+    if changed:
+        session.commit()
+        session.refresh(place)
+    if created:
+        return place, "created"
+    if changed:
+        return place, "updated"
+    return place, "existing"
+
+
+def apply(payload):
+    plan = payload["plan"]
+    with Session(get_engine()) as session:
+        user = choose_user(session, payload.get("user"))
+        place_by_key = {}
+        place_events = []
+        for spec in plan.get("places", []):
+            place, event = upsert_place(session, user, spec)
+            place_by_key[spec["key"]] = place
+            place_events.append({"event": event, "key": spec["key"], "id": place.id, "name": place.name})
+
+        trip_spec = plan["trip"]
+        trip = load_trip(session, user, trip_spec["name"])
+        created_trip = False
+        if not trip:
+            trip = Trip(name=trip_spec["name"], currency=trip_spec.get("currency", "EUR"), user=user)
+            session.add(trip)
+            session.commit()
+            session.refresh(trip)
+            created_trip = True
+            trip = load_trip(session, user, trip_spec["name"])
+
+        changed = False
+        for key in ["currency", "notes", "archival_review"]:
+            if key in trip_spec and getattr(trip, key) != trip_spec[key]:
+                setattr(trip, key, trip_spec[key])
+                changed = True
+        for place in place_by_key.values():
+            if all(existing.id != place.id for existing in trip.places):
+                trip.places.append(place)
+                changed = True
+        if changed:
+            session.add(trip)
+            session.commit()
+            trip = load_trip(session, user, trip_spec["name"])
+
+        day_events = []
+        item_events = []
+        for day_spec in plan["days"]:
+            dt = parse_date(day_spec.get("date"))
+            existing_days = list(trip.days)
+            day = None
+            if dt:
+                day = next((candidate for candidate in existing_days if candidate.dt == dt), None)
+            if not day:
+                day = next((candidate for candidate in existing_days if candidate.label == day_spec["label"]), None)
+            if not day:
+                day = TripDay(label=day_spec["label"], dt=dt, notes=day_spec.get("notes"), trip_id=trip.id)
+                session.add(day)
+                session.commit()
+                session.refresh(day)
+                day_events.append({"event": "created", "id": day.id, "label": day.label})
+            else:
+                updated = False
+                for key, value in {"label": day_spec["label"], "dt": dt, "notes": day_spec.get("notes")}.items():
+                    if value is not None and getattr(day, key) != value:
+                        setattr(day, key, value)
+                        updated = True
+                if updated:
+                    session.add(day)
+                    session.commit()
+                    session.refresh(day)
+                    day_events.append({"event": "updated", "id": day.id, "label": day.label})
+                else:
+                    day_events.append({"event": "existing", "id": day.id, "label": day.label})
+
+            for item_spec in day_spec.get("items", []):
+                item = session.exec(
+                    select(TripItem).where(
+                        TripItem.day_id == day.id,
+                        TripItem.time == item_spec["time"],
+                        TripItem.text == item_spec["text"],
+                    )
+                ).first()
+                place_id = None
+                if item_spec.get("place"):
+                    place_id = place_by_key[item_spec["place"]].id
+                status = item_spec.get("status") or "pending"
+                status_value = TripItemStatusEnum(status)
+                fields = {
+                    "time": item_spec["time"],
+                    "text": item_spec["text"],
+                    "comment": item_spec.get("comment"),
+                    "lat": item_spec.get("lat"),
+                    "lng": item_spec.get("lng"),
+                    "price": item_spec.get("price"),
+                    "paid_by": item_spec.get("paid_by"),
+                    "place_id": place_id,
+                    "status": status_value,
+                    "day_id": day.id,
+                }
+                if not item:
+                    item = TripItem(**fields)
+                    session.add(item)
+                    session.commit()
+                    session.refresh(item)
+                    item_events.append({"event": "created", "id": item.id, "text": item.text})
+                else:
+                    updated = False
+                    for key, value in fields.items():
+                        if getattr(item, key) != value:
+                            setattr(item, key, value)
+                            updated = True
+                    if updated:
+                        session.add(item)
+                        session.commit()
+                        session.refresh(item)
+                        item_events.append({"event": "updated", "id": item.id, "text": item.text})
+                    else:
+                        item_events.append({"event": "existing", "id": item.id, "text": item.text})
+
+            trip = load_trip(session, user, trip_spec["name"])
+
+        trip = load_trip(session, user, trip_spec["name"])
+        return {
+            "user": user,
+            "trip_event": "created" if created_trip else "existing",
+            "trip": serialize_trip(trip),
+            "places": place_events,
+            "days": day_events,
+            "items": item_events,
+        }
+
+
+def show(payload):
+    with Session(get_engine()) as session:
+        user = choose_user(session, payload.get("user"))
+        query = select(Trip).options(
+            selectinload(Trip.places),
+            selectinload(Trip.days).selectinload(TripDay.items),
+        )
+        if payload.get("trip_id"):
+            query = query.where(Trip.id == int(payload["trip_id"]))
+        else:
+            query = query.where(Trip.user == user, Trip.name == payload["trip_name"])
+        trip = session.exec(query).first()
+        if not trip:
+            raise SystemExit("Trip not found")
+        return {"user": user, "trip": serialize_trip(trip)}
+
+
+payload = json.load(sys.stdin)
+action = payload["action"]
+if action == "apply":
+    result = apply(payload)
+elif action == "show":
+    result = show(payload)
+else:
+    raise SystemExit(f"Unsupported action: {action}")
+print(json.dumps(result, indent=2, sort_keys=True))
+"""
 
 
 def parse_env_file(path: Path) -> dict[str, str]:
@@ -205,6 +535,132 @@ def load_json_arg(value: str | None) -> Any | None:
         with Path(value[1:]).expanduser().open("r", encoding="utf-8") as handle:
             return json.load(handle)
     return json.loads(value)
+
+
+def load_roadtrip_plan(value: str) -> dict[str, Any]:
+    plan = load_json_arg(value)
+    if not isinstance(plan, dict):
+        raise TripApiError("Roadtrip plan must be a JSON object")
+    return plan
+
+
+def validate_roadtrip_plan(plan: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    trip = plan.get("trip")
+    if not isinstance(trip, dict):
+        errors.append("trip must be an object")
+    elif not trip.get("name"):
+        errors.append("trip.name is required")
+
+    places = plan.get("places", [])
+    if places is None:
+        places = []
+    if not isinstance(places, list):
+        errors.append("places must be a list")
+        places = []
+    place_keys: set[str] = set()
+    for index, place in enumerate(places):
+        prefix = f"places[{index}]"
+        if not isinstance(place, dict):
+            errors.append(f"{prefix} must be an object")
+            continue
+        key = place.get("key")
+        if not key:
+            errors.append(f"{prefix}.key is required")
+        elif key in place_keys:
+            errors.append(f"{prefix}.key duplicates {key!r}")
+        else:
+            place_keys.add(key)
+        for field in ["name", "lat", "lng", "place"]:
+            if field not in place or place[field] in ("", None):
+                errors.append(f"{prefix}.{field} is required")
+        for field in ["lat", "lng"]:
+            if field in place:
+                try:
+                    float(place[field])
+                except (TypeError, ValueError):
+                    errors.append(f"{prefix}.{field} must be numeric")
+
+    days = plan.get("days")
+    if not isinstance(days, list) or not days:
+        errors.append("days must be a non-empty list")
+        days = []
+    for day_index, day in enumerate(days):
+        day_prefix = f"days[{day_index}]"
+        if not isinstance(day, dict):
+            errors.append(f"{day_prefix} must be an object")
+            continue
+        if not day.get("label"):
+            errors.append(f"{day_prefix}.label is required")
+        if day.get("date"):
+            try:
+                from datetime import date
+
+                date.fromisoformat(day["date"])
+            except (TypeError, ValueError):
+                errors.append(f"{day_prefix}.date must be YYYY-MM-DD")
+        items = day.get("items", [])
+        if not isinstance(items, list):
+            errors.append(f"{day_prefix}.items must be a list")
+            continue
+        for item_index, item in enumerate(items):
+            item_prefix = f"{day_prefix}.items[{item_index}]"
+            if not isinstance(item, dict):
+                errors.append(f"{item_prefix} must be an object")
+                continue
+            if not item.get("text"):
+                errors.append(f"{item_prefix}.text is required")
+            if not item.get("time"):
+                errors.append(f"{item_prefix}.time is required")
+            elif not TIME_RE.fullmatch(str(item["time"])):
+                errors.append(f"{item_prefix}.time must be HH:MM")
+            if item.get("place") and item["place"] not in place_keys:
+                errors.append(f"{item_prefix}.place references unknown place key {item['place']!r}")
+            for field in ["lat", "lng", "price"]:
+                if field in item and item[field] is not None:
+                    try:
+                        float(item[field])
+                    except (TypeError, ValueError):
+                        errors.append(f"{item_prefix}.{field} must be numeric")
+            if item.get("status") and item["status"] not in ROADTRIP_STATUSES:
+                errors.append(f"{item_prefix}.status must be one of {', '.join(sorted(ROADTRIP_STATUSES))}")
+    return errors
+
+
+def roadtrip_summary(plan: dict[str, Any]) -> dict[str, Any]:
+    days = plan.get("days", [])
+    places = plan.get("places", [])
+    return {
+        "trip": plan.get("trip", {}).get("name"),
+        "places": [{"key": place.get("key"), "name": place.get("name")} for place in places if isinstance(place, dict)],
+        "days": [
+            {
+                "label": day.get("label"),
+                "date": day.get("date"),
+                "items": len(day.get("items", [])) if isinstance(day.get("items", []), list) else 0,
+            }
+            for day in days
+            if isinstance(day, dict)
+        ],
+    }
+
+
+def run_container_roadtrip(args: argparse.Namespace, payload: dict[str, Any]) -> Any:
+    command = ["docker", "exec", "-i", args.container, "python3", "-c", CONTAINER_ROADTRIP_CODE]
+    result = subprocess.run(
+        command,
+        input=json.dumps(payload),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        detail = result.stderr.strip() or result.stdout.strip()
+        raise TripApiError(f"Container roadtrip command failed: {detail}")
+    try:
+        return json.loads(result.stdout)
+    except json.JSONDecodeError as exc:
+        raise TripApiError(f"Container returned invalid JSON: {result.stdout[:500]}") from exc
 
 
 def add_bool(parser: argparse.ArgumentParser, name: str) -> None:
@@ -347,6 +803,11 @@ def cmd_docs_json(args: argparse.Namespace) -> None:
     print_json({"endpoints": API_CATALOG, "sources": API_DOC_SOURCES})
 
 
+def cmd_docs_planning(args: argparse.Namespace) -> None:
+    path = Path(__file__).resolve().parents[1] / "references" / "roadtrip.md"
+    print(path.read_text(encoding="utf-8"))
+
+
 def cmd_docs_live(args: argparse.Namespace) -> None:
     base_url = resolve_base_url(args, default_local=True)
     openapi = request_public_json(base_url, "/openapi.json")
@@ -378,11 +839,70 @@ def cmd_docs_live(args: argparse.Namespace) -> None:
     )
 
 
+def cmd_roadtrip_template(args: argparse.Namespace) -> None:
+    print_json(ROADTRIP_TEMPLATE)
+
+
+def cmd_roadtrip_validate(args: argparse.Namespace) -> None:
+    plan = load_roadtrip_plan(args.plan)
+    errors = validate_roadtrip_plan(plan)
+    if errors:
+        print_json({"valid": False, "errors": errors})
+        raise TripApiError("Roadtrip plan validation failed")
+    print_json({"valid": True, "summary": roadtrip_summary(plan)})
+
+
+def cmd_roadtrip_dry_run(args: argparse.Namespace) -> None:
+    plan = load_roadtrip_plan(args.plan)
+    errors = validate_roadtrip_plan(plan)
+    if errors:
+        print_json({"valid": False, "errors": errors})
+        raise TripApiError("Roadtrip plan validation failed")
+    print_json({"valid": True, "would_apply": roadtrip_summary(plan)})
+
+
+def cmd_roadtrip_apply(args: argparse.Namespace) -> None:
+    plan = load_roadtrip_plan(args.plan)
+    errors = validate_roadtrip_plan(plan)
+    if errors:
+        print_json({"valid": False, "errors": errors})
+        raise TripApiError("Roadtrip plan validation failed")
+    result = run_container_roadtrip(
+        args,
+        {
+            "action": "apply",
+            "plan": plan,
+            "user": args.user,
+        },
+    )
+    print_json(result)
+
+
+def cmd_roadtrip_show(args: argparse.Namespace) -> None:
+    if not args.trip_id and not args.trip_name:
+        raise TripApiError("roadtrip show needs a trip id or --trip-name")
+    result = run_container_roadtrip(
+        args,
+        {
+            "action": "show",
+            "trip_id": args.trip_id,
+            "trip_name": args.trip_name,
+            "user": args.user,
+        },
+    )
+    print_json(result)
+
+
 def add_common(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--base-url", help="Override TRIP base URL")
     parser.add_argument("--env-file", default=os.environ.get("TRIP_ENV_FILE", DEFAULT_ENV_FILE))
     parser.add_argument("--token-env", default="TRIP_API_TOKEN", help="Environment variable to read token from")
     parser.add_argument("--dry-run", action="store_true", help="Print request details without sending it")
+
+
+def add_roadtrip_runtime(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--container", default=os.environ.get("TRIP_CONTAINER", "trip"))
+    parser.add_argument("--user", default=os.environ.get("TRIP_USER"))
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -399,8 +919,30 @@ def build_parser() -> argparse.ArgumentParser:
     docs_endpoint.set_defaults(func=cmd_docs_endpoint)
     docs_json = docs_sub.add_parser("json", help="Print the API catalog as JSON")
     docs_json.set_defaults(func=cmd_docs_json)
+    docs_planning = docs_sub.add_parser("planning", help="Print the roadtrip planning workflow")
+    docs_planning.set_defaults(func=cmd_docs_planning)
     docs_live = docs_sub.add_parser("live", help="Compare the catalog with the running app OpenAPI")
     docs_live.set_defaults(func=cmd_docs_live)
+
+    roadtrip = subcommands.add_parser("roadtrip", help="Plan, validate, and apply TRIP roadtrip itineraries")
+    roadtrip_sub = roadtrip.add_subparsers(dest="roadtrip_command", required=True)
+    roadtrip_template = roadtrip_sub.add_parser("template", help="Print a roadtrip JSON template")
+    roadtrip_template.set_defaults(func=cmd_roadtrip_template)
+    roadtrip_validate = roadtrip_sub.add_parser("validate", help="Validate a roadtrip JSON plan")
+    roadtrip_validate.add_argument("plan", help="JSON object, @file, or - for stdin")
+    roadtrip_validate.set_defaults(func=cmd_roadtrip_validate)
+    roadtrip_dry_run = roadtrip_sub.add_parser("dry-run", help="Show what a roadtrip plan would apply")
+    roadtrip_dry_run.add_argument("plan", help="JSON object, @file, or - for stdin")
+    roadtrip_dry_run.set_defaults(func=cmd_roadtrip_dry_run)
+    roadtrip_apply = roadtrip_sub.add_parser("apply", help="Apply a roadtrip JSON plan to the local TRIP container")
+    roadtrip_apply.add_argument("plan", help="JSON object, @file, or - for stdin")
+    add_roadtrip_runtime(roadtrip_apply)
+    roadtrip_apply.set_defaults(func=cmd_roadtrip_apply)
+    roadtrip_show = roadtrip_sub.add_parser("show", help="Read back a saved TRIP roadtrip")
+    roadtrip_show.add_argument("trip_id", nargs="?", type=int)
+    roadtrip_show.add_argument("--trip-name")
+    add_roadtrip_runtime(roadtrip_show)
+    roadtrip_show.set_defaults(func=cmd_roadtrip_show)
 
     config = subcommands.add_parser("config", help="Show resolved config without printing tokens")
     config.set_defaults(func=cmd_config)

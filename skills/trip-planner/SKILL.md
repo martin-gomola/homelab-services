@@ -1,6 +1,6 @@
 ---
 name: trip-planner
-description: Manage the local TRIP self-hosted POI map tracker in homelab-services. Use when restoring TRIP configuration, calling TRIP by-token APIs, creating places, searching Google-backed places, using compact local API docs, deploying or restarting the service, checking Docker health/logs, managing registration, backups, reverse proxy settings, or troubleshooting trip.martingomola.com.
+description: Plan and save roadtrips in the local TRIP self-hosted POI map tracker in homelab-services. Use when creating or updating trips, roadtrip itineraries, day plans, stops, places, Google-backed places, compact local TRIP API docs, TRIP configuration recovery, Docker health/logs, registration, backups, reverse proxy settings, or troubleshooting trip.martingomola.com.
 ---
 
 # TRIP Planner
@@ -15,8 +15,9 @@ Use this skill for the TRIP service in this repo's `trip/` directory.
 - Runtime data: `${DATA_DIR}/trip/storage`, typically `$HOME/srv/docker/trip/storage` on macOS.
 - Public URL: `https://trip.martingomola.com`.
 - Local port: `8050`.
-- API helper and compact local docs: `skills/trip-planner/scripts/trip_api.py`.
+- Roadtrip planner, API helper, and compact local docs: `skills/trip-planner/scripts/trip_api.py`.
 - API notes: `skills/trip-planner/references/api.md`.
+- Roadtrip workflow: `skills/trip-planner/references/roadtrip.md`.
 
 ## Safety Rules
 
@@ -58,7 +59,18 @@ make backup SERVICE=trip
 
 ## API Workflow
 
-For API questions, start with the CLI docs before reading references or browsing:
+For trip planning, start with the roadtrip workflow and CLI:
+
+```bash
+skills/trip-planner/scripts/trip_api.py docs planning
+skills/trip-planner/scripts/trip_api.py roadtrip template
+skills/trip-planner/scripts/trip_api.py roadtrip validate @/tmp/roadtrip.json
+skills/trip-planner/scripts/trip_api.py roadtrip dry-run @/tmp/roadtrip.json
+skills/trip-planner/scripts/trip_api.py roadtrip apply @/tmp/roadtrip.json
+skills/trip-planner/scripts/trip_api.py roadtrip show <trip-id>
+```
+
+Roadtrip creation uses TRIP's local container and SQLModel models because trip/day/item writes are not exposed by the by-token API. Use the by-token commands for standalone POIs. For API questions, start with the CLI docs before reading references or browsing:
 
 ```bash
 skills/trip-planner/scripts/trip_api.py docs brief
