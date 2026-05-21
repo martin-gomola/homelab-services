@@ -1,0 +1,55 @@
+.PHONY: help setup up down restart logs ps codex-mcp-install tuya-local-install dashboard-install config-install esphome-install update
+
+.DEFAULT_GOAL := help
+
+help:
+	@echo "Usage: make <target>"
+	@echo ""
+	@echo "Targets:"
+	@echo "  setup   - Generate runtime config and credentials from .env"
+	@echo "  up      - Run setup and start the stack"
+	@echo "  down    - Stop the stack"
+	@echo "  restart - Restart the stack"
+	@echo "  logs    - Tail stack logs"
+	@echo "  ps      - Show container status"
+	@echo "  codex-mcp-install - Register Home Assistant MCP in local Codex config"
+	@echo "  tuya-local-install - Install pinned tuya_local custom component and repo overlays"
+	@echo "  dashboard-install - Sync tracked dashboard YAML files into live Home Assistant config"
+	@echo "  config-install - Sync tracked Home Assistant base config into live Home Assistant config"
+	@echo "  esphome-install - Sync tracked ESPHome device configs to the ESPHome Dashboard"
+	@echo "  update - Sync tracked Home Assistant config and dashboards into live Home Assistant config"
+
+setup:
+	./setup.sh
+
+up: setup
+	docker compose up -d
+
+down:
+	docker compose down
+
+restart:
+	docker compose restart
+
+logs:
+	docker compose logs -f --tail 50
+
+ps:
+	docker compose ps
+
+codex-mcp-install:
+	bash ./scripts/install-codex-mcp.sh
+
+tuya-local-install:
+	bash ./scripts/install-tuya-local.sh
+
+dashboard-install:
+	bash ./scripts/install-dashboard-overlays.sh
+
+config-install:
+	bash ./scripts/install-config-overlays.sh
+
+esphome-install:
+	bash ./scripts/install-esphome-configs.sh
+
+update: config-install dashboard-install esphome-install

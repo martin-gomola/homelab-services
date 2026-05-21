@@ -1,0 +1,77 @@
+title: Commute
+views:
+  - title: Commute
+    path: commute
+    icon: mdi:bus-clock
+    cards:
+      - type: weather-forecast
+        entity: weather.forecast_home
+        forecast_type: daily
+
+      - type: markdown
+        title: Hubeneho -> Nova doba
+        content: >-
+          {% set dep = states('sensor.cp_to_nova_doba') %}
+          {% set arr = state_attr('sensor.cp_to_nova_doba', 'next_arrival') %}
+          {% set mins = state_attr('sensor.cp_to_nova_doba', 'next_minutes_until') %}
+          {% set lines = state_attr('sensor.cp_to_nova_doba', 'next_lines') or [] %}
+          ## {{ dep }}
+
+          Leaves in **{{ mins }} min**
+
+          Arrives **{{ arr }}**
+
+          {{ lines | join(' + ') }}
+
+      - type: markdown
+        title: Nova doba -> Hubeneho
+        content: >-
+          {% set dep = states('sensor.cp_to_hubeneho') %}
+          {% set arr = state_attr('sensor.cp_to_hubeneho', 'next_arrival') %}
+          {% set mins = state_attr('sensor.cp_to_hubeneho', 'next_minutes_until') %}
+          {% set lines = state_attr('sensor.cp_to_hubeneho', 'next_lines') or [] %}
+          ## {{ dep }}
+
+          Leaves in **{{ mins }} min**
+
+          Arrives **{{ arr }}**
+
+          {{ lines | join(' + ') }}
+
+      - type: markdown
+        content: |
+          ## Departure Board
+
+      - type: markdown
+        title: To Nova doba
+        content: >-
+          {% set trips = state_attr('sensor.cp_to_nova_doba', 'connections') or [] %}
+          {% if trips %}
+          {% for trip in trips[:5] %}
+          **{{ trip.departure }}** · in {{ trip.minutes_until }} min
+          arrive {{ trip.arrival }}
+
+          {% endfor %}
+          {% else %}
+          No departures found right now.
+          {% endif %}
+
+      - type: markdown
+        title: Back to Hubeneho
+        content: >-
+          {% set trips = state_attr('sensor.cp_to_hubeneho', 'connections') or [] %}
+          {% if trips %}
+          {% for trip in trips[:5] %}
+          **{{ trip.departure }}** · in {{ trip.minutes_until }} min
+          arrive {{ trip.arrival }}
+
+          {% endfor %}
+          {% else %}
+          No departures found right now.
+          {% endif %}
+
+      - type: markdown
+        content: >-
+          [Open outbound search]({{ state_attr('sensor.cp_to_nova_doba', 'query_url') }})
+          ·
+          [Open return search]({{ state_attr('sensor.cp_to_hubeneho', 'query_url') }})

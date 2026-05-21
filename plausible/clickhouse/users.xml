@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<clickhouse>
+    <profiles>
+        <default>
+            <!-- User-level settings for low-resource setups -->
+            <max_insert_block_size>1048576</max_insert_block_size>
+            <max_query_size>1048576</max_query_size>
+        </default>
+    </profiles>
+</clickhouse>
+
