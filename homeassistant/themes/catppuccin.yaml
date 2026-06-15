@@ -431,7 +431,7 @@ Catppuccin Latte:
   ##########
   # Graphs #
   ##########
-  graph-color-1: var(--catppuccin-mauve)
+  graph-color-1: var(--catppuccin-blue)
   graph-color-2: var(--catppuccin-green)
   graph-color-3: var(--catppuccin-red)
   graph-color-4: var(--catppuccin-blue)
@@ -882,7 +882,7 @@ Catppuccin Frappe:
   ##########
   # Graphs #
   ##########
-  graph-color-1: var(--catppuccin-mauve)
+  graph-color-1: var(--catppuccin-blue)
   graph-color-2: var(--catppuccin-green)
   graph-color-3: var(--catppuccin-red)
   graph-color-4: var(--catppuccin-blue)
@@ -1333,7 +1333,7 @@ Catppuccin Macchiato:
   ##########
   # Graphs #
   ##########
-  graph-color-1: var(--catppuccin-mauve)
+  graph-color-1: var(--catppuccin-blue)
   graph-color-2: var(--catppuccin-green)
   graph-color-3: var(--catppuccin-red)
   graph-color-4: var(--catppuccin-blue)
@@ -1784,7 +1784,7 @@ Catppuccin Mocha:
   ##########
   # Graphs #
   ##########
-  graph-color-1: var(--catppuccin-mauve)
+  graph-color-1: var(--catppuccin-blue)
   graph-color-2: var(--catppuccin-green)
   graph-color-3: var(--catppuccin-red)
   graph-color-4: var(--catppuccin-blue)
@@ -2237,7 +2237,7 @@ Catppuccin Auto Latte Frappe:
       ##########
       # Graphs #
       ##########
-      graph-color-1: var(--catppuccin-mauve)
+      graph-color-1: var(--catppuccin-blue)
       graph-color-2: var(--catppuccin-green)
       graph-color-3: var(--catppuccin-red)
       graph-color-4: var(--catppuccin-blue)
@@ -2684,7 +2684,7 @@ Catppuccin Auto Latte Frappe:
       ##########
       # Graphs #
       ##########
-      graph-color-1: var(--catppuccin-mauve)
+      graph-color-1: var(--catppuccin-blue)
       graph-color-2: var(--catppuccin-green)
       graph-color-3: var(--catppuccin-red)
       graph-color-4: var(--catppuccin-blue)
@@ -3133,7 +3133,7 @@ Catppuccin Auto Latte Macchiato:
       ##########
       # Graphs #
       ##########
-      graph-color-1: var(--catppuccin-mauve)
+      graph-color-1: var(--catppuccin-blue)
       graph-color-2: var(--catppuccin-green)
       graph-color-3: var(--catppuccin-red)
       graph-color-4: var(--catppuccin-blue)
@@ -3580,7 +3580,7 @@ Catppuccin Auto Latte Macchiato:
       ##########
       # Graphs #
       ##########
-      graph-color-1: var(--catppuccin-mauve)
+      graph-color-1: var(--catppuccin-blue)
       graph-color-2: var(--catppuccin-green)
       graph-color-3: var(--catppuccin-red)
       graph-color-4: var(--catppuccin-blue)
@@ -4029,7 +4029,7 @@ Catppuccin Auto Latte Mocha:
       ##########
       # Graphs #
       ##########
-      graph-color-1: var(--catppuccin-mauve)
+      graph-color-1: var(--catppuccin-blue)
       graph-color-2: var(--catppuccin-green)
       graph-color-3: var(--catppuccin-red)
       graph-color-4: var(--catppuccin-blue)
@@ -4476,7 +4476,7 @@ Catppuccin Auto Latte Mocha:
       ##########
       # Graphs #
       ##########
-      graph-color-1: var(--catppuccin-mauve)
+      graph-color-1: var(--catppuccin-blue)
       graph-color-2: var(--catppuccin-green)
       graph-color-3: var(--catppuccin-red)
       graph-color-4: var(--catppuccin-blue)
