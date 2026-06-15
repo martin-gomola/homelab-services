@@ -138,6 +138,115 @@ Notes:
 - If a device appears in Zigbee2MQTT but not in Home Assistant, check that the `MQTT` integration is loaded
 - Rename Zigbee devices in Zigbee2MQTT first if you want cleaner entity names in Home Assistant
 
+### 6a. Manually add another Zigbee sensor
+
+Use this flow when adding a new battery sensor such as a plant, soil, contact, temperature, or motion sensor.
+
+Recommended UI flow:
+
+1. Open Zigbee2MQTT at `http://mac-mini:8099`.
+2. Click `Permit join`.
+3. Put the new sensor into pairing mode.
+4. Wait until Zigbee2MQTT says the interview is successful.
+5. Rename the device in Zigbee2MQTT immediately, for example `plant_02`.
+6. Check Home Assistant at `http://mac-mini:8123`.
+7. If the device needs a dashboard card, update the tracked dashboard YAML under `dashboards/`, then copy it into the live config or run the dashboard installer.
+
+CLI flow from a laptop with SSH access to `mac-mini`:
+
+```bash
+# Open pairing for the Zigbee2MQTT maximum window.
+ssh mac-mini 'zsh -l -c "docker exec -i mosquitto sh"' <<'SH'
+mosquitto_pub -h localhost -u "$MQTT_USER" -P "$MQTT_PASSWORD" \
+  -t zigbee2mqtt/bridge/request/permit_join \
+  -m '{"value":true,"time":254}'
+SH
+
+# Watch for join and interview events.
+ssh mac-mini 'zsh -l -c "docker logs -f --since 30s zigbee2mqtt 2>&1 | grep -Ei --line-buffered '\''permit|join|interview|announce|0x[a-f0-9]{16}|device'\''"'
+```
+
+After the new device joins, rename it:
+
+```bash
+ssh mac-mini 'zsh -l -c "docker exec -i mosquitto sh"' <<'SH'
+mosquitto_pub -h localhost -u "$MQTT_USER" -P "$MQTT_PASSWORD" \
+  -t zigbee2mqtt/bridge/request/device/rename \
+  -m '{"from":"0xNEW_DEVICE_IEEE","to":"plant_02"}'
+SH
+```
+
+Then close pairing:
+
+```bash
+ssh mac-mini 'zsh -l -c "docker exec -i mosquitto sh"' <<'SH'
+mosquitto_pub -h localhost -u "$MQTT_USER" -P "$MQTT_PASSWORD" \
+  -t zigbee2mqtt/bridge/request/permit_join \
+  -m '{"value":false,"time":0}'
+SH
+```
+
+Persist the friendly name in the tracked repo config:
+
+```yaml
+devices:
+  '0xNEW_DEVICE_IEEE':
+    friendly_name: plant_02
+```
+
+For this repo, the file is:
+
+```text
+homeassistant/zigbee2mqtt/configuration.yaml
+```
+
+Important:
+
+- Rename in Zigbee2MQTT before Home Assistant creates entities when possible.
+- If Home Assistant already created `sensor.0x...` entity IDs, rename the entity IDs in Home Assistant or update `.storage/core.entity_registry` carefully with a backup, then restart Home Assistant.
+- Do not run `make config-install` just to add a paired device unless you intend to overwrite the live generated Zigbee2MQTT config. The live file contains runtime-generated network values.
+- Always close `permit_join` after pairing.
+
+If the entity IDs were created before the Zigbee2MQTT rename, the safe manual path is:
+
+1. In Home Assistant, go to `Settings -> Devices & services -> Entities`.
+2. Search for the IEEE address, for example `0xa4c138eb3a3c38db`.
+3. Rename each entity ID to the friendly-name shape, for example:
+   - `sensor.plant_02_temperature`
+   - `sensor.plant_02_humidity`
+   - `sensor.plant_02_soil_moisture`
+   - `sensor.plant_02_battery`
+   - `binary_sensor.plant_02_dry`
+4. Restart Home Assistant.
+
+For dashboard changes, edit the tracked YAML first:
+
+```text
+homeassistant/dashboards/plants.yaml
+```
+
+Then sync it to the live config:
+
+```bash
+# From the repo on the Docker host when .env exists:
+make dashboard-install
+
+# Or from a laptop:
+scp homeassistant/dashboards/plants.yaml \
+  mac-mini:~/srv/docker/homeassistant/config/dashboards/plants.yaml
+ssh mac-mini 'zsh -l -c "docker restart homeassistant"'
+```
+
+Verification:
+
+```bash
+# Confirm Zigbee2MQTT publishes the friendly name.
+ssh mac-mini 'zsh -l -c "docker logs --since 5m zigbee2mqtt 2>&1 | grep plant_02 | tail -20"'
+
+# Confirm Home Assistant is healthy.
+ssh mac-mini 'zsh -l -c "curl -sf http://localhost:8123/manifest.json >/dev/null && echo HA_OK"'
+```
+
 ### 7. Configure Home Assistant basics
 
 Recommended after first boot:

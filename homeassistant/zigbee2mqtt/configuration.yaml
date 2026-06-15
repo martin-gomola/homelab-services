@@ -39,3 +39,5 @@ device_options:
 devices:
   '0xa4c138ce09a1c5b0':
     friendly_name: plant_01
+  '0xa4c138eb3a3c38db':
+    friendly_name: plant_02
