@@ -8,8 +8,8 @@ Catppuccin Latte:
   catppuccin-flamingo-rgb: 221, 120, 120
   catppuccin-pink: "#ea76cb"
   catppuccin-pink-rgb: 234, 118, 203
-  catppuccin-mauve: "#8839ef"
-  catppuccin-mauve-rgb: 136, 57, 239
+  catppuccin-mauve: "#40a02b"
+  catppuccin-mauve-rgb: 64, 160, 43
   catppuccin-red: "#d20f39"
   catppuccin-red-rgb: 210, 15, 57
   catppuccin-maroon: "#e64553"
@@ -64,17 +64,17 @@ Catppuccin Latte:
   # Primary
   # NOTE: This centers around `primary-40` rather than `primary-50` because
   # HA uses `-40` as the default brand color for some reason.
-  ha-color-primary-05: rgb(84, 76, 122)
-  ha-color-primary-10: rgb(91, 73, 139)
-  ha-color-primary-20: rgb(106, 68, 172)
-  ha-color-primary-30: rgb(121, 63, 205)
-  ha-color-primary-40: rgb(136, 57, 239)
-  ha-color-primary-50: rgb(153, 88, 240)
-  ha-color-primary-60: rgb(170, 117, 241)
-  ha-color-primary-70: rgb(186, 147, 242)
-  ha-color-primary-80: rgb(205, 181, 243)
-  ha-color-primary-90: rgb(222, 210, 244)
-  ha-color-primary-95: rgb(231, 226, 245)
+  ha-color-primary-05: rgb(75, 87, 98)
+  ha-color-primary-10: rgb(74, 95, 93)
+  ha-color-primary-20: rgb(72, 111, 80)
+  ha-color-primary-30: rgb(68, 128, 68)
+  ha-color-primary-40: rgb(66, 144, 55)
+  ha-color-primary-50: rgb(64, 160, 43)
+  ha-color-primary-60: rgb(99, 176, 83)
+  ha-color-primary-70: rgb(134, 192, 124)
+  ha-color-primary-80: rgb(169, 209, 164)
+  ha-color-primary-90: rgb(204, 225, 205)
+  ha-color-primary-95: rgb(222, 232, 224)
 
   # Neutral
   ha-color-neutral-05: rgb(84, 87, 112)
@@ -1814,8 +1814,8 @@ Catppuccin Auto Latte Frappe:
       catppuccin-flamingo-rgb: 221, 120, 120
       catppuccin-pink: "#ea76cb"
       catppuccin-pink-rgb: 234, 118, 203
-      catppuccin-mauve: "#8839ef"
-      catppuccin-mauve-rgb: 136, 57, 239
+      catppuccin-mauve: "#40a02b"
+      catppuccin-mauve-rgb: 64, 160, 43
       catppuccin-red: "#d20f39"
       catppuccin-red-rgb: 210, 15, 57
       catppuccin-maroon: "#e64553"
@@ -1870,17 +1870,17 @@ Catppuccin Auto Latte Frappe:
       # Primary
       # NOTE: This centers around `primary-40` rather than `primary-50` because
       # HA uses `-40` as the default brand color for some reason.
-      ha-color-primary-05: rgb(84, 76, 122)
-      ha-color-primary-10: rgb(91, 73, 139)
-      ha-color-primary-20: rgb(106, 68, 172)
-      ha-color-primary-30: rgb(121, 63, 205)
-      ha-color-primary-40: rgb(136, 57, 239)
-      ha-color-primary-50: rgb(153, 88, 240)
-      ha-color-primary-60: rgb(170, 117, 241)
-      ha-color-primary-70: rgb(186, 147, 242)
-      ha-color-primary-80: rgb(205, 181, 243)
-      ha-color-primary-90: rgb(222, 210, 244)
-      ha-color-primary-95: rgb(231, 226, 245)
+      ha-color-primary-05: rgb(75, 87, 98)
+      ha-color-primary-10: rgb(74, 95, 93)
+      ha-color-primary-20: rgb(72, 111, 80)
+      ha-color-primary-30: rgb(68, 128, 68)
+      ha-color-primary-40: rgb(66, 144, 55)
+      ha-color-primary-50: rgb(64, 160, 43)
+      ha-color-primary-60: rgb(99, 176, 83)
+      ha-color-primary-70: rgb(134, 192, 124)
+      ha-color-primary-80: rgb(169, 209, 164)
+      ha-color-primary-90: rgb(204, 225, 205)
+      ha-color-primary-95: rgb(222, 232, 224)
 
       # Neutral
       ha-color-neutral-05: rgb(84, 87, 112)
@@ -2710,8 +2710,8 @@ Catppuccin Auto Latte Macchiato:
       catppuccin-flamingo-rgb: 221, 120, 120
       catppuccin-pink: "#ea76cb"
       catppuccin-pink-rgb: 234, 118, 203
-      catppuccin-mauve: "#8839ef"
-      catppuccin-mauve-rgb: 136, 57, 239
+      catppuccin-mauve: "#40a02b"
+      catppuccin-mauve-rgb: 64, 160, 43
       catppuccin-red: "#d20f39"
       catppuccin-red-rgb: 210, 15, 57
       catppuccin-maroon: "#e64553"
@@ -2766,17 +2766,17 @@ Catppuccin Auto Latte Macchiato:
       # Primary
       # NOTE: This centers around `primary-40` rather than `primary-50` because
       # HA uses `-40` as the default brand color for some reason.
-      ha-color-primary-05: rgb(84, 76, 122)
-      ha-color-primary-10: rgb(91, 73, 139)
-      ha-color-primary-20: rgb(106, 68, 172)
-      ha-color-primary-30: rgb(121, 63, 205)
-      ha-color-primary-40: rgb(136, 57, 239)
-      ha-color-primary-50: rgb(153, 88, 240)
-      ha-color-primary-60: rgb(170, 117, 241)
-      ha-color-primary-70: rgb(186, 147, 242)
-      ha-color-primary-80: rgb(205, 181, 243)
-      ha-color-primary-90: rgb(222, 210, 244)
-      ha-color-primary-95: rgb(231, 226, 245)
+      ha-color-primary-05: rgb(75, 87, 98)
+      ha-color-primary-10: rgb(74, 95, 93)
+      ha-color-primary-20: rgb(72, 111, 80)
+      ha-color-primary-30: rgb(68, 128, 68)
+      ha-color-primary-40: rgb(66, 144, 55)
+      ha-color-primary-50: rgb(64, 160, 43)
+      ha-color-primary-60: rgb(99, 176, 83)
+      ha-color-primary-70: rgb(134, 192, 124)
+      ha-color-primary-80: rgb(169, 209, 164)
+      ha-color-primary-90: rgb(204, 225, 205)
+      ha-color-primary-95: rgb(222, 232, 224)
 
       # Neutral
       ha-color-neutral-05: rgb(84, 87, 112)
@@ -3606,8 +3606,8 @@ Catppuccin Auto Latte Mocha:
       catppuccin-flamingo-rgb: 221, 120, 120
       catppuccin-pink: "#ea76cb"
       catppuccin-pink-rgb: 234, 118, 203
-      catppuccin-mauve: "#8839ef"
-      catppuccin-mauve-rgb: 136, 57, 239
+      catppuccin-mauve: "#40a02b"
+      catppuccin-mauve-rgb: 64, 160, 43
       catppuccin-red: "#d20f39"
       catppuccin-red-rgb: 210, 15, 57
       catppuccin-maroon: "#e64553"
@@ -3662,17 +3662,17 @@ Catppuccin Auto Latte Mocha:
       # Primary
       # NOTE: This centers around `primary-40` rather than `primary-50` because
       # HA uses `-40` as the default brand color for some reason.
-      ha-color-primary-05: rgb(84, 76, 122)
-      ha-color-primary-10: rgb(91, 73, 139)
-      ha-color-primary-20: rgb(106, 68, 172)
-      ha-color-primary-30: rgb(121, 63, 205)
-      ha-color-primary-40: rgb(136, 57, 239)
-      ha-color-primary-50: rgb(153, 88, 240)
-      ha-color-primary-60: rgb(170, 117, 241)
-      ha-color-primary-70: rgb(186, 147, 242)
-      ha-color-primary-80: rgb(205, 181, 243)
-      ha-color-primary-90: rgb(222, 210, 244)
-      ha-color-primary-95: rgb(231, 226, 245)
+      ha-color-primary-05: rgb(75, 87, 98)
+      ha-color-primary-10: rgb(74, 95, 93)
+      ha-color-primary-20: rgb(72, 111, 80)
+      ha-color-primary-30: rgb(68, 128, 68)
+      ha-color-primary-40: rgb(66, 144, 55)
+      ha-color-primary-50: rgb(64, 160, 43)
+      ha-color-primary-60: rgb(99, 176, 83)
+      ha-color-primary-70: rgb(134, 192, 124)
+      ha-color-primary-80: rgb(169, 209, 164)
+      ha-color-primary-90: rgb(204, 225, 205)
+      ha-color-primary-95: rgb(222, 232, 224)
 
       # Neutral
       ha-color-neutral-05: rgb(84, 87, 112)
