@@ -1,0 +1,16 @@
+{
+  "$schema": "https://github.com/toeverything/affine/releases/latest/download/config.schema.json",
+  "server": {
+    "name": "AFFiNE (self-hosted)"
+  },
+  "mailer": {
+    "SMTP": {
+      "host": "smtp_relay",
+      "port": 587,
+      "username": "",
+      "password": "",
+      "sender": "AFFiNE <your-email@example.com>",
+      "ignoreTLS": true
+    }
+  }
+}

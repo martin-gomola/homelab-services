@@ -6,25 +6,36 @@ Self-hosted collaborative documentation platform.
 
 ```bash
 cp .env.example .env
-nano .env  # Configure your settings
-docker-compose up -d
+nano .env  # infra settings (DB, ports, SMTP relay creds)
+
+# AFFiNE 0.27+ mailer config lives in config.json, not .env
+mkdir -p "${DATA_DIR:-/srv/docker}/affine/config"
+cp config.json.example "${DATA_DIR:-/srv/docker}/affine/config/config.json"
+nano "${DATA_DIR:-/srv/docker}/affine/config/config.json"  # set sender address
+
+docker compose up -d
 ```
 
 ## Configuration
 
+Config is split across two files:
+
+**`.env`** — infrastructure and SMTP relay creds (Postfix container).
+
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `AFFINE_PORT` | Web UI port | 3010 |
-| `AFFINE_REVISION` | Docker image version | 0.25.7 |
+| `AFFINE_REVISION` | Docker image version | 0.27.0 |
 | `DB_USERNAME` | PostgreSQL username | affine |
 | `DB_PASSWORD` | PostgreSQL password | - |
 | `DB_DATABASE` | PostgreSQL database | affinedb |
-| `MAILER_SENDER` | Email sender address | - |
-| `SMTP_RELAY_HOST` | External SMTP host | smtp.gmail.com |
-| `SMTP_RELAY_PORT` | External SMTP port | 587 |
-| `MAILER_USER` | SMTP username | - |
-| `MAILER_PASSWORD` | SMTP app password | - |
-| `MAIL_DOMAIN` | Allowed sender domain | - |
+| `SMTP_RELAY_HOST` | Upstream SMTP host (Gmail, Fastmail, etc.) | smtp.gmail.com |
+| `SMTP_RELAY_PORT` | Upstream SMTP port | 587 |
+| `MAILER_USER` | Upstream SMTP username | - |
+| `MAILER_PASSWORD` | Upstream SMTP app password | - |
+| `MAIL_DOMAIN` | Allowed sender domain for the relay | - |
+
+**`config.json`** (mounted at `/root/.affine/config/config.json`) — AFFiNE application config. Since 0.27, upstream dropped the `MAILER_*` env vars; mailer settings must go here. Template: `config.json.example`. Schema: `https://github.com/toeverything/affine/releases/latest/download/config.schema.json`.
 
 ## Known Issues
 
@@ -47,19 +58,28 @@ Error: Connection closed unexpectedly
 **Workaround (implemented in this repo):**
 
 This stack includes a local SMTP relay (`boky/postfix`) that handles TLS correctly:
-- Affine connects to the relay (internal Docker network)
-- `MAILER_IGNORE_TLS=true` ignores the relay's self-signed certificate
-- The relay forwards to Gmail/your mail provider with proper SSL/STARTTLS
+- AFFiNE connects to the relay over the internal Docker network
+- `ignoreTLS: true` in `config.json` skips the relay's self-signed certificate
+- The relay forwards to Gmail (or your provider) with proper SSL/STARTTLS
 
-The Affine config file at `/srv/docker/affine/config/.env` should contain:
+The `mailer.SMTP` block in `${DATA_DIR}/affine/config/config.json` should look like:
+
+```json
+{
+  "mailer": {
+    "SMTP": {
+      "host": "smtp_relay",
+      "port": 587,
+      "username": "",
+      "password": "",
+      "sender": "AFFiNE <your-email@example.com>",
+      "ignoreTLS": true
+    }
+  }
+}
 ```
-MAILER_HOST=smtp_relay
-MAILER_PORT=587
-MAILER_USER=
-MAILER_PASSWORD=
-MAILER_SENDER=your-email@example.com
-MAILER_IGNORE_TLS=true
-```
+
+The upstream provider credentials (`MAILER_USER` / `MAILER_PASSWORD`) stay in `.env` — those are consumed by the Postfix relay, not by AFFiNE.
 
 **Alternative workaround (manual user management):**
 1. Go to `https://your-domain/admin/accounts` with admin account

@@ -2,7 +2,7 @@ name: affine
 
 services:
   affine_server:
-    image: ghcr.io/toeverything/affine:${AFFINE_REVISION:-0.26.3}
+    image: ghcr.io/toeverything/affine:${AFFINE_REVISION:-0.27.0}
     container_name: affine_server
     ports:
       - '${AFFINE_PORT:-3010}:3010'
@@ -24,14 +24,8 @@ services:
       - REDIS_SERVER_HOST=redis
       - DATABASE_URL=postgresql://${DB_USERNAME}:${DB_PASSWORD}@affine_postgres:5432/${DB_DATABASE}
       - NODE_OPTIONS=--max-old-space-size=4096
-      - MAILER_ENABLED=${MAILER_ENABLED:-true}
-      # Use local SMTP relay (no auth needed, relay handles Gmail TLS)
-      - MAILER_HOST=smtp_relay
-      - MAILER_PORT=587
-      - MAILER_USER=
-      - MAILER_PASSWORD=
-      - MAILER_SENDER=${MAILER_SENDER}
-      - MAILER_IGNORE_TLS=true
+      # Mailer settings now live in ${DATA_DIR}/affine/config/config.json
+      # (AFFiNE 0.27 dropped the MAILER_* env vars — see config.json.example)
     logging:
       driver: "json-file"
       options:
@@ -53,7 +47,7 @@ services:
     stop_grace_period: 10s
 
   affine_migration:
-    image: ghcr.io/toeverything/affine:${AFFINE_REVISION:-0.26.3}
+    image: ghcr.io/toeverything/affine:${AFFINE_REVISION:-0.27.0}
     container_name: affine_migration_job
     volumes:
       - ${DATA_DIR:-/srv/docker}/affine/config:/root/.affine/config
@@ -64,14 +58,6 @@ services:
     environment:
       - REDIS_SERVER_HOST=redis
       - DATABASE_URL=postgresql://${DB_USERNAME}:${DB_PASSWORD}@affine_postgres:5432/${DB_DATABASE}
-      - MAILER_ENABLED=${MAILER_ENABLED:-true}
-      # Use local SMTP relay (no auth needed, relay handles Gmail TLS)
-      - MAILER_HOST=smtp_relay
-      - MAILER_PORT=587
-      - MAILER_USER=
-      - MAILER_PASSWORD=
-      - MAILER_SENDER=${MAILER_SENDER}
-      - MAILER_IGNORE_TLS=true
     depends_on:
       redis:
         condition: service_healthy
