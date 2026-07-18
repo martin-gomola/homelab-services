@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   plausible:
-    image: ghcr.io/plausible/community-edition:v3.1.0
+    image: ghcr.io/plausible/community-edition:v3.2.1
     container_name: plausible
     command: sh -c "mkdir -p /var/lib/plausible/tzdata_data/release_ets /var/lib/plausible/tmp && /entrypoint.sh db createdb && /entrypoint.sh db migrate && /entrypoint.sh run"
     env_file:

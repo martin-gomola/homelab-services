@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 REPO_ESPHOME_DIR="${PROJECT_DIR}/esphome"
-ESPHOME_API="http://192.168.1.200:6052"
+ESPHOME_API="${ESPHOME_API:-http://localhost:6052}"
 
 if [ ! -d "${REPO_ESPHOME_DIR}" ]; then
   echo "No esphome/ directory found in ${PROJECT_DIR}"
