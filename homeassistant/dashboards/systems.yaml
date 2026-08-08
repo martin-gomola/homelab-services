@@ -1,5 +1,35 @@
 title: Systems
 views:
+  - title: Services
+    path: services
+    icon: mdi:server-network
+    cards:
+      - type: custom:mushroom-title-card
+        title: Services
+        subtitle: Open local administration interfaces.
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Zigbee2MQTT
+            secondary: Zigbee device bridge
+            icon: mdi:zigbee
+            icon_color: amber
+            tap_action:
+              action: url
+              url_path: http://192.168.1.200:8099/
+
+          - type: custom:mushroom-template-card
+            primary: ESPHome
+            secondary: Device builder and manager
+            icon: mdi:chip
+            icon_color: blue
+            tap_action:
+              action: url
+              url_path: http://192.168.1.200:6052/
+
   - title: Environment
     path: environment
     icon: mdi:leaf-circle-outline

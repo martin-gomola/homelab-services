@@ -1,321 +1,446 @@
 title: Plant Sensors
 views:
-  - title: Overview
+  - title: Plants
     path: overview
     icon: mdi:sprout
-    type: sidebar
-    cards:
-      - type: custom:mushroom-title-card
-        title: Plant Sensors
-        subtitle: >-
-          Plant 01 soil {{ states('sensor.plant_01_soil_moisture') }}%
-          · Plant 02 soil {{ states('sensor.plant_02_soil_moisture') }}%
-          · Plant 02 battery {{ states('sensor.plant_02_battery') }}%
+    type: sections
+    max_columns: 2
+    header:
+      layout: responsive
+      badges_position: bottom
+      badges_wrap: wrap
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Plant care
+            heading_style: title
+            icon: mdi:leaf-circle-outline
 
-      - type: custom:mushroom-title-card
-        title: Plant 01
-        subtitle: >-
-          Soil {{ states('sensor.plant_01_soil_moisture') }}%
-          · {{ states('sensor.plant_01_temperature') }}°C
-          · Battery {{ states('sensor.plant_01_battery') }}%
-
-      - type: custom:mushroom-chips-card
-        chips:
-          - type: template
-            entity: sensor.plant_01_soil_moisture
-            icon: mdi:water-percent
-            content: "{{ states('sensor.plant_01_soil_moisture') }}%"
-            icon_color: |-
-              {% set m = states('sensor.plant_01_soil_moisture') | int(0) %}
-              {% if m < 25 %}red
-              {% elif m < 45 %}amber
-              {% else %}green{% endif %}
-
-          - type: template
-            entity: sensor.plant_01_soil_fertility
-            icon: mdi:flask-outline
-            content: "{{ states('sensor.plant_01_soil_fertility') }}"
-            icon_color: |-
-              {% set f = states('sensor.plant_01_soil_fertility') | int(0) %}
-              {% if f < 1200 %}red
-              {% elif f < 2000 %}amber
-              {% else %}green{% endif %}
-
-          - type: template
-            entity: sensor.plant_01_illuminance
-            icon: mdi:white-balance-sunny
-            content: "{{ states('sensor.plant_01_illuminance') }} lx"
-            icon_color: |-
-              {% set lx = states('sensor.plant_01_illuminance') | int(0) %}
-              {% if lx < 200 %}red
-              {% elif lx < 1500 %}amber
-              {% else %}green{% endif %}
-
-          - type: template
-            entity: sensor.plant_01_battery
+          - type: custom:mushroom-template-card
+            primary: >-
+              {% set p1 = states('sensor.plant_01_soil_moisture') %}
+              {% set p2 = states('sensor.plant_02_soil_moisture') %}
+              {% if p1 in ['unknown', 'unavailable'] or p2 in ['unknown', 'unavailable'] %}
+                Waiting for a sensor update
+              {% elif p1 | int(0) < 25 or is_state('binary_sensor.plant_02_dry', 'on') %}
+                Watering needed
+              {% elif not is_state('sensor.plant_01_soil_fertility_warning', '0') %}
+                Plant 01 needs fertilizer
+              {% else %}
+                Both plants look good
+              {% endif %}
+            secondary: >-
+              {% set items = namespace(value=[]) %}
+              {% set p1 = states('sensor.plant_01_soil_moisture') %}
+              {% set p2 = states('sensor.plant_02_soil_moisture') %}
+              {% if p1 in ['unknown', 'unavailable'] %}
+                {% set items.value = items.value + ['Plant 01 has not reported yet'] %}
+              {% elif p1 | int(0) < 25 %}
+                {% set items.value = items.value + ['Plant 01 soil is ' ~ p1 ~ '%'] %}
+              {% endif %}
+              {% if p2 in ['unknown', 'unavailable'] %}
+                {% set items.value = items.value + ['Plant 02 has not reported yet'] %}
+              {% elif is_state('binary_sensor.plant_02_dry', 'on') %}
+                {% set items.value = items.value + ['Plant 02 soil is ' ~ p2 ~ '%'] %}
+              {% endif %}
+              {% if states('sensor.plant_01_soil_fertility_warning') not in ['0', 'unknown', 'unavailable'] %}
+                {% set items.value = items.value + ['Plant 01 fertility is low'] %}
+              {% endif %}
+              {{ items.value | join(' | ') if items.value else 'No care action is needed right now' }}
             icon: >-
-              {% set b = states('sensor.plant_01_battery') | int(0) %}
-              {% if b < 20 %}mdi:battery-low
-              {% elif b < 50 %}mdi:battery-50
-              {% else %}mdi:battery{% endif %}
-            content: "{{ states('sensor.plant_01_battery') }}%"
-            icon_color: |-
-              {% set b = states('sensor.plant_01_battery') | int(0) %}
-              {% if b < 20 %}red
-              {% elif b < 50 %}amber
-              {% else %}green{% endif %}
-
-          - type: conditional
-            conditions:
-              - entity: sensor.plant_01_water_warning
-                state_not: "0"
-            chip:
-              type: template
-              icon: mdi:water-alert
-              icon_color: red
-              content: Needs water
-
-          - type: conditional
-            conditions:
-              - entity: sensor.plant_01_soil_fertility_warning
-                state_not: "0"
-            chip:
-              type: template
-              icon: mdi:alert-circle
-              icon_color: amber
-              content: Low fertility
+              {% set p1 = states('sensor.plant_01_soil_moisture') %}
+              {% set p2 = states('sensor.plant_02_soil_moisture') %}
+              {% if p1 in ['unknown', 'unavailable'] or p2 in ['unknown', 'unavailable'] %}
+                mdi:sync-alert
+              {% elif p1 | int(0) < 25 or is_state('binary_sensor.plant_02_dry', 'on') %}
+                mdi:watering-can-outline
+              {% elif states('sensor.plant_01_soil_fertility_warning') not in ['0', 'unknown', 'unavailable'] %}
+                mdi:flask-outline
+              {% else %}
+                mdi:check-circle-outline
+              {% endif %}
+            icon_color: >-
+              {% set p1 = states('sensor.plant_01_soil_moisture') %}
+              {% set p2 = states('sensor.plant_02_soil_moisture') %}
+              {% if p1 in ['unknown', 'unavailable'] or p2 in ['unknown', 'unavailable'] %}
+                grey
+              {% elif p1 | int(0) < 25 or is_state('binary_sensor.plant_02_dry', 'on') %}
+                red
+              {% elif states('sensor.plant_01_soil_fertility_warning') not in ['0', 'unknown', 'unavailable'] %}
+                amber
+              {% else %}
+                green
+              {% endif %}
+            multiline_secondary: true
+            tap_action:
+              action: none
+            grid_options:
+              columns: full
+              rows: 1
 
       - type: grid
-        title: At A Glance
-        columns: 2
-        square: false
-        view_layout:
-          position: sidebar
         cards:
-          - type: gauge
+          - type: heading
+            heading: Plant 01
+            heading_style: title
+            icon: mdi:flower-outline
+
+          - type: custom:mushroom-template-card
             entity: sensor.plant_01_soil_moisture
-            name: Soil Moisture
-            min: 0
-            max: 100
-            severity:
-              green: 45
-              yellow: 25
-              red: 10
-          - type: gauge
-            entity: sensor.plant_01_humidity
-            name: Air Humidity
-            min: 0
-            max: 100
-            severity:
-              green: 55
-              yellow: 35
-              red: 20
-          - type: custom:mushroom-entity-card
+            primary: >-
+              {% set soil = states('sensor.plant_01_soil_moisture') %}
+              {% if soil in ['unknown', 'unavailable'] %}
+                Waiting for sensor update
+              {% elif soil | int(0) < 25 %}
+                Needs water
+              {% elif states('sensor.plant_01_soil_fertility_warning') not in ['0', 'unknown', 'unavailable'] %}
+                Low fertility
+              {% else %}
+                Healthy
+              {% endif %}
+            secondary: >-
+              {% if states('sensor.plant_01_soil_moisture') not in ['unknown', 'unavailable'] %}
+                Updated {{ relative_time(states.sensor.plant_01_soil_moisture.last_updated) }} ago
+              {% else %}
+                The sensor will update on its next report
+              {% endif %}
+            icon: mdi:flower
+            icon_color: >-
+              {% set soil = states('sensor.plant_01_soil_moisture') %}
+              {% if soil in ['unknown', 'unavailable'] %}grey
+              {% elif soil | int(0) < 25 %}red
+              {% elif states('sensor.plant_01_soil_fertility_warning') not in ['0', 'unknown', 'unavailable'] %}amber
+              {% else %}green{% endif %}
+            tap_action:
+              action: more-info
+            grid_options:
+              columns: 12
+              rows: 1
+
+          - type: tile
+            entity: sensor.plant_01_soil_moisture
+            name: Soil moisture
+            icon: mdi:water-percent
+            vertical: false
+            grid_options:
+              columns: 6
+              rows: 1
+
+          - type: tile
             entity: sensor.plant_01_temperature
             name: Temperature
             icon: mdi:thermometer
-            icon_color: |-
-              {% set t = states('sensor.plant_01_temperature') | float(0) %}
-              {% if t >= 30 %}red
-              {% elif t >= 25 %}amber
-              {% elif t < 10 %}blue
-              {% else %}green{% endif %}
-          - type: custom:mushroom-entity-card
-            entity: sensor.plant_01_illuminance
-            name: Light
-            icon: mdi:white-balance-sunny
-            icon_color: |-
-              {% set lx = states('sensor.plant_01_illuminance') | int(0) %}
-              {% if lx < 200 %}deep-purple
-              {% elif lx < 1500 %}amber
-              {% else %}yellow{% endif %}
+            vertical: false
+            grid_options:
+              columns: 6
+              rows: 1
 
-      - type: entities
-        title: Plant Health
-        show_header_toggle: false
-        view_layout:
-          position: sidebar
-        entities:
-          - entity: sensor.plant_01_water_warning
-            name: Water Warning
-          - entity: sensor.plant_01_soil_fertility_warning
-            name: Fertility Warning
-          - entity: sensor.plant_01_soil_fertility
-            name: Soil Fertility
-          - entity: sensor.plant_01_battery
+          - type: tile
+            entity: sensor.plant_01_humidity
+            name: Air humidity
+            icon: mdi:water-outline
+            vertical: false
+            grid_options:
+              columns: 6
+              rows: 1
+
+          - type: tile
+            entity: sensor.plant_01_battery
             name: Battery
+            icon: mdi:battery
+            vertical: false
+            grid_options:
+              columns: 6
+              rows: 1
 
-      - type: history-graph
-        title: Daily Trends
-        hours_to_show: 24
-        entities:
-          - entity: sensor.plant_01_soil_moisture
-            name: Soil Moisture
-          - entity: sensor.plant_01_humidity
-            name: Air Humidity
-          - entity: sensor.plant_01_temperature
-            name: Temperature
-
-      - type: history-graph
-        title: Light And Fertility
-        hours_to_show: 24
-        entities:
-          - entity: sensor.plant_01_illuminance
-            name: Light
-          - entity: sensor.plant_01_soil_fertility
-            name: Soil Fertility
-
-      - type: custom:mushroom-title-card
-        title: Plant 02
-        subtitle: >-
-          Soil {{ states('sensor.plant_02_soil_moisture') }}%
-          · {{ states('sensor.plant_02_temperature') }}°C
-          · Battery {{ states('sensor.plant_02_battery') }}%
-
-      - type: custom:mushroom-chips-card
-        chips:
-          - type: template
-            entity: sensor.plant_02_soil_moisture
-            icon: mdi:water-percent
-            content: "{{ states('sensor.plant_02_soil_moisture') }}%"
-            icon_color: |-
-              {% set m = states('sensor.plant_02_soil_moisture') | int(0) %}
-              {% if m < 25 %}red
-              {% elif m < 45 %}amber
-              {% else %}green{% endif %}
-
-          - type: template
-            entity: sensor.plant_02_humidity
-            icon: mdi:water
-            content: "{{ states('sensor.plant_02_humidity') }}%"
-            icon_color: |-
-              {% set h = states('sensor.plant_02_humidity') | int(0) %}
-              {% if h < 35 %}amber
-              {% elif h > 75 %}blue
-              {% else %}green{% endif %}
-
-          - type: template
-            entity: binary_sensor.plant_02_dry
-            icon: mdi:water-alert
-            content: >-
-              {% if is_state('binary_sensor.plant_02_dry', 'on') %}Dry
-              {% else %}OK{% endif %}
-            icon_color: >-
-              {% if is_state('binary_sensor.plant_02_dry', 'on') %}red
-              {% else %}green{% endif %}
-
-          - type: template
-            entity: sensor.plant_02_battery
-            icon: >-
-              {% set b = states('sensor.plant_02_battery') | int(0) %}
-              {% if b < 20 %}mdi:battery-low
-              {% elif b < 50 %}mdi:battery-50
-              {% else %}mdi:battery{% endif %}
-            content: "{{ states('sensor.plant_02_battery') }}%"
-            icon_color: |-
-              {% set b = states('sensor.plant_02_battery') | int(0) %}
-              {% if b < 20 %}red
-              {% elif b < 50 %}amber
-              {% else %}green{% endif %}
+          - type: custom:mushroom-chips-card
+            alignment: start
+            chips:
+              - type: template
+                entity: sensor.plant_01_soil_fertility
+                icon: mdi:flask-outline
+                content: >-
+                  Fertility {{ states('sensor.plant_01_soil_fertility') }} uS/cm
+                icon_color: >-
+                  {% set value = states('sensor.plant_01_soil_fertility') %}
+                  {% if value in ['unknown', 'unavailable'] %}grey
+                  {% elif value | int(0) < 1200 %}red
+                  {% elif value | int(0) < 2000 %}amber
+                  {% else %}green{% endif %}
+              - type: template
+                entity: sensor.plant_01_illuminance
+                icon: mdi:white-balance-sunny
+                content: >-
+                  Light {{ states('sensor.plant_01_illuminance') }} lx
+                icon_color: >-
+                  {% set value = states('sensor.plant_01_illuminance') %}
+                  {% if value in ['unknown', 'unavailable'] %}grey
+                  {% elif value | int(0) < 200 %}red
+                  {% elif value | int(0) < 1500 %}amber
+                  {% else %}green{% endif %}
+            grid_options:
+              columns: 12
+              rows: 1
 
       - type: grid
-        title: Plant 02 At A Glance
-        columns: 2
-        square: false
-        view_layout:
-          position: sidebar
         cards:
-          - type: gauge
+          - type: heading
+            heading: Plant 02
+            heading_style: title
+            icon: mdi:flower-tulip-outline
+
+          - type: custom:mushroom-template-card
             entity: sensor.plant_02_soil_moisture
-            name: Soil Moisture
-            min: 0
-            max: 100
-            severity:
-              green: 45
-              yellow: 25
-              red: 10
-          - type: gauge
-            entity: sensor.plant_02_humidity
-            name: Air Humidity
-            min: 0
-            max: 100
-            severity:
-              green: 55
-              yellow: 35
-              red: 20
-          - type: custom:mushroom-entity-card
+            primary: >-
+              {% set soil = states('sensor.plant_02_soil_moisture') %}
+              {% if soil in ['unknown', 'unavailable'] %}
+                Waiting for sensor update
+              {% elif is_state('binary_sensor.plant_02_dry', 'on') %}
+                Needs water
+              {% else %}
+                Healthy
+              {% endif %}
+            secondary: >-
+              {% if states('sensor.plant_02_soil_moisture') not in ['unknown', 'unavailable'] %}
+                Updated {{ relative_time(states.sensor.plant_02_soil_moisture.last_updated) }} ago
+              {% else %}
+                The sensor will update on its next report
+              {% endif %}
+            icon: mdi:flower-tulip
+            icon_color: >-
+              {% set soil = states('sensor.plant_02_soil_moisture') %}
+              {% if soil in ['unknown', 'unavailable'] %}grey
+              {% elif is_state('binary_sensor.plant_02_dry', 'on') %}red
+              {% else %}green{% endif %}
+            tap_action:
+              action: more-info
+            grid_options:
+              columns: 12
+              rows: 1
+
+          - type: tile
+            entity: sensor.plant_02_soil_moisture
+            name: Soil moisture
+            icon: mdi:water-percent
+            vertical: false
+            grid_options:
+              columns: 6
+              rows: 1
+
+          - type: tile
             entity: sensor.plant_02_temperature
             name: Temperature
             icon: mdi:thermometer
-            icon_color: |-
-              {% set t = states('sensor.plant_02_temperature') | float(0) %}
-              {% if t >= 30 %}red
-              {% elif t >= 25 %}amber
-              {% elif t < 10 %}blue
-              {% else %}green{% endif %}
-          - type: custom:mushroom-entity-card
-            entity: binary_sensor.plant_02_dry
-            name: Dry Warning
-            icon: mdi:water-alert
-            icon_color: >-
-              {% if is_state('binary_sensor.plant_02_dry', 'on') %}red
-              {% else %}green{% endif %}
+            vertical: false
+            grid_options:
+              columns: 6
+              rows: 1
 
-      - type: history-graph
-        title: Plant 02 Daily Trends
-        hours_to_show: 24
-        entities:
-          - entity: sensor.plant_02_soil_moisture
-            name: Soil Moisture
-          - entity: sensor.plant_02_humidity
-            name: Air Humidity
-          - entity: sensor.plant_02_temperature
-            name: Temperature
+          - type: tile
+            entity: sensor.plant_02_humidity
+            name: Air humidity
+            icon: mdi:water-outline
+            vertical: false
+            grid_options:
+              columns: 6
+              rows: 1
 
-      - type: entities
-        title: Plant 02 Settings
-        show_header_toggle: false
-        view_layout:
-          position: sidebar
-        entities:
-          - entity: binary_sensor.plant_02_dry
-            name: Dry Warning
-          - entity: sensor.plant_02_battery
+          - type: tile
+            entity: sensor.plant_02_battery
             name: Battery
-          - entity: select.plant_02_temperature_unit
-            name: Temperature Unit
-          - entity: number.plant_02_soil_warning
-            name: Soil Warning
-          - entity: number.plant_02_soil_sampling
-            name: Soil Sampling Interval
-          - entity: number.plant_02_temperature_sampling
-            name: Temperature Sampling Interval
-          - entity: number.plant_02_soil_calibration
-            name: Soil Calibration
-          - entity: number.plant_02_humidity_calibration
-            name: Humidity Calibration
-          - entity: number.plant_02_temperature_calibration
-            name: Temperature Calibration
+            icon: mdi:battery
+            vertical: false
+            grid_options:
+              columns: 6
+              rows: 1
+
+          - type: custom:mushroom-chips-card
+            alignment: start
+            chips:
+              - type: template
+                entity: binary_sensor.plant_02_dry
+                icon: >-
+                  {% if is_state('binary_sensor.plant_02_dry', 'on') %}
+                    mdi:water-alert
+                  {% else %}
+                    mdi:check-circle-outline
+                  {% endif %}
+                content: >-
+                  {% if is_state('binary_sensor.plant_02_dry', 'on') %}
+                    Dry warning
+                  {% else %}
+                    Moisture OK
+                  {% endif %}
+                icon_color: >-
+                  {% if is_state('binary_sensor.plant_02_dry', 'on') %}red
+                  {% else %}green{% endif %}
+            grid_options:
+              columns: 12
+              rows: 1
 
       - type: grid
-        title: Care Settings
-        columns: 2
-        square: false
-        view_layout:
-          position: sidebar
+        column_span: 2
         cards:
+          - type: heading
+            heading: Seven-day trends
+            heading_style: title
+            icon: mdi:chart-line
+
+          - type: statistics-graph
+            title: Soil moisture
+            chart_type: line
+            days_to_show: 7
+            period: hour
+            stat_types:
+              - mean
+            entities:
+              - entity: sensor.plant_01_soil_moisture
+                name: Plant 01
+                color: red
+              - entity: sensor.plant_02_soil_moisture
+                name: Plant 02
+                color: green
+            grid_options:
+              columns: 12
+              rows: 4
+
+          - type: statistics-graph
+            title: Temperature
+            chart_type: line
+            days_to_show: 7
+            period: hour
+            stat_types:
+              - mean
+            entities:
+              - entity: sensor.plant_01_temperature
+                name: Plant 01
+                color: red
+              - entity: sensor.plant_02_temperature
+                name: Plant 02
+                color: green
+            grid_options:
+              columns: 12
+              rows: 4
+
+          - type: custom:mushroom-template-card
+            primary: Detailed trends
+            secondary: Light, fertility, humidity, and raw 24-hour history
+            icon: mdi:chart-timeline-variant
+            icon_color: green
+            tap_action:
+              action: navigate
+              navigation_path: /house-plants/trends
+            grid_options:
+              columns: 12
+              rows: 1
+
+          - type: custom:mushroom-template-card
+            primary: Sensor settings
+            secondary: Thresholds, sampling, and calibration
+            icon: mdi:tune-variant
+            icon_color: grey
+            tap_action:
+              action: navigate
+              navigation_path: /house-plants/settings
+            grid_options:
+              columns: 12
+              rows: 1
+
+  - title: Detailed trends
+    path: trends
+    subview: true
+    back_path: /house-plants/overview
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Plant 01
+            heading_style: title
+            icon: mdi:flower-outline
+
+          - type: history-graph
+            title: Environment - last 24 hours
+            hours_to_show: 24
+            entities:
+              - entity: sensor.plant_01_soil_moisture
+                name: Soil moisture
+              - entity: sensor.plant_01_humidity
+                name: Air humidity
+              - entity: sensor.plant_01_temperature
+                name: Temperature
+            grid_options:
+              columns: 12
+              rows: 5
+
+          - type: history-graph
+            title: Light and fertility - last 24 hours
+            hours_to_show: 24
+            entities:
+              - entity: sensor.plant_01_illuminance
+                name: Light
+              - entity: sensor.plant_01_soil_fertility
+                name: Soil fertility
+            grid_options:
+              columns: 12
+              rows: 5
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Plant 02
+            heading_style: title
+            icon: mdi:flower-tulip-outline
+
+          - type: history-graph
+            title: Environment - last 24 hours
+            hours_to_show: 24
+            entities:
+              - entity: sensor.plant_02_soil_moisture
+                name: Soil moisture
+              - entity: sensor.plant_02_humidity
+                name: Air humidity
+              - entity: sensor.plant_02_temperature
+                name: Temperature
+            grid_options:
+              columns: 12
+              rows: 5
+
+  - title: Sensor settings
+    path: settings
+    subview: true
+    back_path: /house-plants/overview
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Plant 01 thresholds
+            heading_style: title
+            icon: mdi:tune-variant
+
           - type: entities
-            title: Thresholds
             show_header_toggle: false
             entities:
               - entity: number.plant_01_soil_warning
-                name: Soil Warning
+                name: Soil warning
               - entity: number.plant_01_soil_fertility_warning_setting
-                name: Fertility Warning
+                name: Fertility warning
               - entity: number.plant_01_soil_sampling
-                name: Sampling Interval
+                name: Sampling interval
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Plant 01 calibration
+            heading_style: title
+            icon: mdi:scale-balance
+
           - type: entities
-            title: Calibration
             show_header_toggle: false
             entities:
               - entity: number.plant_01_humidity_calibration
@@ -323,6 +448,44 @@ views:
               - entity: number.plant_01_temperature_calibration
                 name: Temperature
               - entity: number.plant_01_soil_calibration
-                name: Soil Moisture
+                name: Soil moisture
               - entity: number.plant_01_illuminance_calibration
                 name: Light
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Plant 02 thresholds
+            heading_style: title
+            icon: mdi:tune-variant
+
+          - type: entities
+            show_header_toggle: false
+            entities:
+              - entity: binary_sensor.plant_02_dry
+                name: Dry warning
+              - entity: select.plant_02_temperature_unit
+                name: Temperature unit
+              - entity: number.plant_02_soil_warning
+                name: Soil warning
+              - entity: number.plant_02_soil_sampling
+                name: Soil sampling interval
+              - entity: number.plant_02_temperature_sampling
+                name: Temperature sampling interval
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Plant 02 calibration
+            heading_style: title
+            icon: mdi:scale-balance
+
+          - type: entities
+            show_header_toggle: false
+            entities:
+              - entity: number.plant_02_soil_calibration
+                name: Soil moisture
+              - entity: number.plant_02_humidity_calibration
+                name: Humidity
+              - entity: number.plant_02_temperature_calibration
+                name: Temperature

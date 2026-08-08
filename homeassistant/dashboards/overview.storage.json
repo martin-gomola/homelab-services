@@ -1,0 +1,246 @@
+{
+  "title": "Overview",
+  "path": "overview",
+  "icon": "mdi:view-dashboard-outline",
+  "type": "sections",
+  "max_columns": 3,
+  "dense_section_placement": false,
+  "badges": [
+    {
+      "entity": "person.beskar_labs",
+      "name": "Martin"
+    },
+    {
+      "entity": "weather.forecast_home",
+      "name": "Weather"
+    },
+    {
+      "entity": "binary_sensor.humidifier_tank",
+      "name": "Tank"
+    }
+  ],
+  "sections": [
+    {
+      "type": "grid",
+      "cards": [
+        {
+          "type": "heading",
+          "heading": "Home controls",
+          "heading_style": "title",
+          "icon": "mdi:home-outline"
+        },
+        {
+          "type": "tile",
+          "entity": "light.yeelight_stripe_0x12a2e794",
+          "name": "Light strip",
+          "vertical": false,
+          "grid_options": {
+            "columns": 6
+          }
+        },
+        {
+          "type": "tile",
+          "entity": "fan.zhimi_de_106389295_za4_s_2_fan",
+          "name": "Bedroom fan",
+          "vertical": false,
+          "grid_options": {
+            "columns": 6
+          }
+        },
+        {
+          "type": "tile",
+          "entity": "switch.zhimi_de_319110959_mb4_on_p_2_1",
+          "name": "Air purifier",
+          "vertical": false,
+          "grid_options": {
+            "columns": 6
+          }
+        },
+        {
+          "type": "tile",
+          "entity": "media_player.samsung_8_series_55_ue55ru8002uxxh",
+          "name": "Living room TV",
+          "vertical": false,
+          "grid_options": {
+            "columns": 6
+          }
+        },
+        {
+          "type": "tile",
+          "entity": "switch.mxiang_de_1147325117_c301_on_p_2_1",
+          "name": "Kitchen camera",
+          "vertical": false,
+          "grid_options": {
+            "columns": 6
+          }
+        },
+        {
+          "type": "tile",
+          "entity": "switch.living_room",
+          "name": "Living room switch",
+          "icon": "mdi:toggle-switch",
+          "vertical": false,
+          "grid_options": {
+            "columns": 6
+          }
+        },
+        {
+          "type": "tile",
+          "entity": "switch.kitchen",
+          "name": "Kitchen switch",
+          "icon": "mdi:toggle-switch",
+          "vertical": false,
+          "grid_options": {
+            "columns": 6
+          }
+        }
+      ]
+    },
+    {
+      "type": "grid",
+      "cards": [
+        {
+          "type": "heading",
+          "heading": "Environment",
+          "heading_style": "title",
+          "icon": "mdi:leaf-circle-outline"
+        },
+        {
+          "type": "conditional",
+          "conditions": [
+            {
+              "entity": "switch.humidifier_power",
+              "state": "unavailable"
+            }
+          ],
+          "card": {
+            "type": "custom:mushroom-template-card",
+            "primary": "Humidifier unavailable",
+            "secondary": "Bedroom climate sensor is offline",
+            "icon": "mdi:air-humidifier-off",
+            "icon_color": "red",
+            "tap_action": {
+              "action": "navigate",
+              "navigation_path": "/house-rooms/bedroom"
+            }
+          },
+          "grid_options": {
+            "columns": 12
+          }
+        },
+        {
+          "type": "custom:mushroom-template-card",
+          "entity": "sensor.plant_01_soil_moisture",
+          "primary": "Plant 01",
+          "secondary": "{% set soil = states('sensor.plant_01_soil_moisture') %}{% if soil in ['unknown', 'unavailable'] %}Waiting for sensor update{% else %}Soil {{ soil }}% · {{ states('sensor.plant_01_temperature') }}°C · Battery {{ states('sensor.plant_01_battery') }}%{% endif %}",
+          "icon": "mdi:flower",
+          "icon_color": "{% set soil = states('sensor.plant_01_soil_moisture') %}{% if soil in ['unknown', 'unavailable'] %}disabled{% elif soil | int(0) < 25 %}red{% elif soil | int(0) < 45 %}amber{% else %}green{% endif %}",
+          "tap_action": {
+            "action": "navigate",
+            "navigation_path": "/house-plants/overview"
+          },
+          "grid_options": {
+            "columns": 12
+          }
+        },
+        {
+          "type": "custom:mushroom-template-card",
+          "entity": "sensor.plant_02_soil_moisture",
+          "primary": "Plant 02",
+          "secondary": "{% set soil = states('sensor.plant_02_soil_moisture') %}{% if soil in ['unknown', 'unavailable'] %}Waiting for sensor update{% else %}Soil {{ soil }}% · {{ states('sensor.plant_02_temperature') }}°C · Battery {{ states('sensor.plant_02_battery') }}%{% endif %}",
+          "icon": "mdi:flower-outline",
+          "icon_color": "{% set soil = states('sensor.plant_02_soil_moisture') %}{% if soil in ['unknown', 'unavailable'] %}disabled{% elif soil | int(0) < 25 %}red{% elif soil | int(0) < 45 %}amber{% else %}green{% endif %}",
+          "tap_action": {
+            "action": "navigate",
+            "navigation_path": "/house-plants/overview"
+          },
+          "grid_options": {
+            "columns": 12
+          }
+        },
+        {
+          "type": "custom:mushroom-template-card",
+          "entity": "sensor.zhimi_de_319110959_mb4_pm2_5_density_p_3_4",
+          "primary": "Air quality",
+          "secondary": "PM2.5 {{ states('sensor.zhimi_de_319110959_mb4_pm2_5_density_p_3_4') }} µg/m³",
+          "icon": "mdi:air-filter",
+          "icon_color": "{% set pm = states('sensor.zhimi_de_319110959_mb4_pm2_5_density_p_3_4') | int(0) %}{% if pm > 120 %}red{% elif pm > 35 %}amber{% else %}green{% endif %}",
+          "tap_action": {
+            "action": "navigate",
+            "navigation_path": "/house-systems/environment"
+          },
+          "grid_options": {
+            "columns": 12
+          }
+        }
+      ]
+    },
+    {
+      "type": "grid",
+      "cards": [
+        {
+          "type": "heading",
+          "heading": "Explore",
+          "heading_style": "title",
+          "icon": "mdi:compass-outline"
+        },
+        {
+          "type": "custom:mushroom-template-card",
+          "primary": "Rooms",
+          "secondary": "Living room, bedroom, and kitchen",
+          "icon": "mdi:sofa-outline",
+          "icon_color": "blue",
+          "tap_action": {
+            "action": "navigate",
+            "navigation_path": "/house-rooms/living-room"
+          },
+          "grid_options": {
+            "columns": 12
+          }
+        },
+        {
+          "type": "custom:mushroom-template-card",
+          "primary": "Plants",
+          "secondary": "Moisture, temperature, and history",
+          "icon": "mdi:sprout",
+          "icon_color": "green",
+          "tap_action": {
+            "action": "navigate",
+            "navigation_path": "/house-plants/overview"
+          },
+          "grid_options": {
+            "columns": 12
+          }
+        },
+        {
+          "type": "custom:mushroom-template-card",
+          "primary": "Systems",
+          "secondary": "Services and maintenance",
+          "icon": "mdi:server-network",
+          "icon_color": "amber",
+          "tap_action": {
+            "action": "navigate",
+            "navigation_path": "/house-systems/services"
+          },
+          "grid_options": {
+            "columns": 12
+          }
+        },
+        {
+          "type": "custom:mushroom-template-card",
+          "primary": "Commute",
+          "secondary": "Live departures and routes",
+          "icon": "mdi:bus-clock",
+          "icon_color": "teal",
+          "tap_action": {
+            "action": "navigate",
+            "navigation_path": "/house-commute/commute"
+          },
+          "grid_options": {
+            "columns": 12
+          }
+        }
+      ]
+    }
+  ]
+}

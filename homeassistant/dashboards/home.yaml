@@ -147,14 +147,14 @@ views:
             collapsible_controls: true
           - type: custom:mushroom-entity-card
             entity: switch.living_room
-            name: Living Room Plug
-            icon: mdi:power-plug
+            name: Living Room Switch
+            icon: mdi:toggle-switch
             tap_action:
               action: toggle
           - type: custom:mushroom-entity-card
             entity: switch.kitchen
-            name: Kitchen Plug
-            icon: mdi:power-plug
+            name: Kitchen Switch
+            icon: mdi:toggle-switch
             tap_action:
               action: toggle
 
