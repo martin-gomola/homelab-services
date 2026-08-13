@@ -28,6 +28,7 @@ Every stack follows the same conventions: env-driven config, isolated Compose pr
 | **Home Assistant** | 8123 | home.domain.com | Smart home automation (Zigbee2MQTT + MQTT) |
 | **ESPHome** | 6052 | esphome.domain.com | ESP32/ESP8266 firmware builder & OTA manager |
 | **TRIP** | 8050 | trip.domain.com | POI map tracker & trip planner (SQLite) |
+| **Protected Tours** | 4180 | tours.domain.com | Private chaptered audio tours; Cloudflare Access required |
 
 ## Quick Start
 
