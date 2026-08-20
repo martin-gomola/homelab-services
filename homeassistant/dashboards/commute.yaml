@@ -3,75 +3,266 @@ views:
   - title: Commute
     path: commute
     icon: mdi:bus-clock
-    cards:
-      - type: weather-forecast
-        entity: weather.forecast_home
-        forecast_type: daily
+    type: sections
+    max_columns: 2
+    header:
+      layout: responsive
+      badges_position: bottom
+      badges_wrap: wrap
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Travel conditions
+            heading_style: title
+            icon: mdi:weather-partly-cloudy
 
-      - type: markdown
-        title: Hubeneho -> Nova doba
-        content: >-
-          {% set dep = states('sensor.cp_to_nova_doba') %}
-          {% set arr = state_attr('sensor.cp_to_nova_doba', 'next_arrival') %}
-          {% set mins = state_attr('sensor.cp_to_nova_doba', 'next_minutes_until') %}
-          {% set lines = state_attr('sensor.cp_to_nova_doba', 'next_lines') or [] %}
-          ## {{ dep }}
+          - type: tile
+            entity: weather.forecast_home
+            name: Outside now
+            icon: mdi:weather-partly-cloudy
+            state_content:
+              - state
+              - temperature
+            vertical: false
+            grid_options:
+              columns: 12
+              rows: 1
 
-          Leaves in **{{ mins }} min**
+          - type: custom:mushroom-template-card
+            primary: Timetable status
+            secondary: >-
+              {% set outbound = state_attr('sensor.cp_to_nova_doba', 'updated_at') %}
+              {% set inbound = state_attr('sensor.cp_to_hubeneho', 'updated_at') %}
+              {% set updated = outbound or inbound %}
+              {% if updated %}
+                Updated {{ relative_time(as_datetime(updated)) }} ago
+              {% else %}
+                Waiting for timetable data
+              {% endif %}
+            icon: >-
+              {% if states('sensor.cp_to_nova_doba') in ['unknown', 'unavailable']
+                    or states('sensor.cp_to_hubeneho') in ['unknown', 'unavailable'] %}
+                mdi:cloud-alert-outline
+              {% else %}
+                mdi:cloud-check-outline
+              {% endif %}
+            icon_color: >-
+              {% if states('sensor.cp_to_nova_doba') in ['unknown', 'unavailable']
+                    or states('sensor.cp_to_hubeneho') in ['unknown', 'unavailable'] %}
+                amber
+              {% else %}
+                green
+              {% endif %}
+            tap_action:
+              action: none
+            grid_options:
+              columns: 12
+              rows: 1
 
-          Arrives **{{ arr }}**
+      - type: grid
+        cards:
+          - type: heading
+            heading: To Nova doba
+            heading_style: title
+            icon: mdi:arrow-right-circle-outline
 
-          {{ lines | join(' + ') }}
+          - type: custom:mushroom-template-card
+            entity: sensor.cp_to_nova_doba
+            primary: >-
+              {% set minutes = state_attr('sensor.cp_to_nova_doba', 'next_minutes_until') | int(-1) %}
+              {% if states('sensor.cp_to_nova_doba') in ['unknown', 'unavailable'] or minutes < 0 %}
+                Timetable unavailable
+              {% elif minutes == 0 %}
+                Departing now
+              {% elif minutes < 60 %}
+                Next bus in {{ minutes }} min
+              {% else %}
+                Next bus {{ (as_timestamp(now()) + minutes * 60) | timestamp_custom('%A', true) }}
+                at {{ states('sensor.cp_to_nova_doba') }}
+              {% endif %}
+            secondary: >-
+              {% set arrival = state_attr('sensor.cp_to_nova_doba', 'next_arrival') %}
+              {% set lines = state_attr('sensor.cp_to_nova_doba', 'next_lines') or [] %}
+              {% if states('sensor.cp_to_nova_doba') in ['unknown', 'unavailable'] %}
+                Timetable data will refresh automatically
+              {% else %}
+                Departs {{ states('sensor.cp_to_nova_doba') }} | arrives {{ arrival }}
+                {% if lines %}| {{ lines | join(' + ') }}{% endif %}
+              {% endif %}
+            icon: mdi:bus
+            icon_color: >-
+              {% set minutes = state_attr('sensor.cp_to_nova_doba', 'next_minutes_until') | int(-1) %}
+              {% if minutes < 0 %}grey
+              {% elif minutes <= 15 %}red
+              {% elif minutes <= 45 %}amber
+              {% else %}green{% endif %}
+            multiline_secondary: true
+            tap_action:
+              action: more-info
+            grid_options:
+              columns: 12
+              rows: 1
 
-      - type: markdown
-        title: Nova doba -> Hubeneho
-        content: >-
-          {% set dep = states('sensor.cp_to_hubeneho') %}
-          {% set arr = state_attr('sensor.cp_to_hubeneho', 'next_arrival') %}
-          {% set mins = state_attr('sensor.cp_to_hubeneho', 'next_minutes_until') %}
-          {% set lines = state_attr('sensor.cp_to_hubeneho', 'next_lines') or [] %}
-          ## {{ dep }}
+          - type: custom:mushroom-template-card
+            entity: sensor.cp_to_nova_doba
+            primary: >-
+              {% set trips = state_attr('sensor.cp_to_nova_doba', 'connections') or [] %}
+              {% if trips | count > 1 %}
+                {{ trips[1].departure }} -> {{ trips[1].arrival }}
+              {% else %}
+                No later departure
+              {% endif %}
+            secondary: >-
+              {% set trips = state_attr('sensor.cp_to_nova_doba', 'connections') or [] %}
+              {% if trips | count > 1 %}
+                {% set trip = trips[1] %}
+                {{ (as_timestamp(now()) + (trip.minutes_until | int(0)) * 60) | timestamp_custom('%A', true) }}
+                {% if trip.lines %}| {{ trip.lines | join(' + ') }}{% endif %}
+              {% else %}
+                Check the full timetable
+              {% endif %}
+            icon: mdi:bus-clock
+            icon_color: green
+            tap_action:
+              action: more-info
+            grid_options:
+              columns: 6
+              rows: 1
 
-          Leaves in **{{ mins }} min**
+          - type: custom:mushroom-template-card
+            entity: sensor.cp_to_nova_doba
+            primary: >-
+              {% set trips = state_attr('sensor.cp_to_nova_doba', 'connections') or [] %}
+              {% if trips | count > 2 %}
+                {{ trips[2].departure }} -> {{ trips[2].arrival }}
+              {% else %}
+                No later departure
+              {% endif %}
+            secondary: >-
+              {% set trips = state_attr('sensor.cp_to_nova_doba', 'connections') or [] %}
+              {% if trips | count > 2 %}
+                {% set trip = trips[2] %}
+                {{ (as_timestamp(now()) + (trip.minutes_until | int(0)) * 60) | timestamp_custom('%A', true) }}
+                {% if trip.lines %}| {{ trip.lines | join(' + ') }}{% endif %}
+              {% else %}
+                Check the full timetable
+              {% endif %}
+            icon: mdi:bus-clock
+            icon_color: green
+            tap_action:
+              action: more-info
+            grid_options:
+              columns: 6
+              rows: 1
 
-          Arrives **{{ arr }}**
+          - type: markdown
+            content: >-
+              [**Open full timetable**]({{ state_attr('sensor.cp_to_nova_doba', 'query_url') }})
+            grid_options:
+              columns: 12
+              rows: auto
 
-          {{ lines | join(' + ') }}
+      - type: grid
+        cards:
+          - type: heading
+            heading: Back to Hubeneho
+            heading_style: title
+            icon: mdi:arrow-left-circle-outline
 
-      - type: markdown
-        content: |
-          ## Departure Board
+          - type: custom:mushroom-template-card
+            entity: sensor.cp_to_hubeneho
+            primary: >-
+              {% set minutes = state_attr('sensor.cp_to_hubeneho', 'next_minutes_until') | int(-1) %}
+              {% if states('sensor.cp_to_hubeneho') in ['unknown', 'unavailable'] or minutes < 0 %}
+                Timetable unavailable
+              {% elif minutes == 0 %}
+                Departing now
+              {% elif minutes < 60 %}
+                Next bus in {{ minutes }} min
+              {% else %}
+                Next bus {{ (as_timestamp(now()) + minutes * 60) | timestamp_custom('%A', true) }}
+                at {{ states('sensor.cp_to_hubeneho') }}
+              {% endif %}
+            secondary: >-
+              {% set arrival = state_attr('sensor.cp_to_hubeneho', 'next_arrival') %}
+              {% set lines = state_attr('sensor.cp_to_hubeneho', 'next_lines') or [] %}
+              {% if states('sensor.cp_to_hubeneho') in ['unknown', 'unavailable'] %}
+                Timetable data will refresh automatically
+              {% else %}
+                Departs {{ states('sensor.cp_to_hubeneho') }} | arrives {{ arrival }}
+                {% if lines %}| {{ lines | join(' + ') }}{% endif %}
+              {% endif %}
+            icon: mdi:bus
+            icon_color: >-
+              {% set minutes = state_attr('sensor.cp_to_hubeneho', 'next_minutes_until') | int(-1) %}
+              {% if minutes < 0 %}grey
+              {% elif minutes <= 15 %}red
+              {% elif minutes <= 45 %}amber
+              {% else %}green{% endif %}
+            multiline_secondary: true
+            tap_action:
+              action: more-info
+            grid_options:
+              columns: 12
+              rows: 1
 
-      - type: markdown
-        title: To Nova doba
-        content: >-
-          {% set trips = state_attr('sensor.cp_to_nova_doba', 'connections') or [] %}
-          {% if trips %}
-          {% for trip in trips[:5] %}
-          **{{ trip.departure }}** · in {{ trip.minutes_until }} min
-          arrive {{ trip.arrival }}
+          - type: custom:mushroom-template-card
+            entity: sensor.cp_to_hubeneho
+            primary: >-
+              {% set trips = state_attr('sensor.cp_to_hubeneho', 'connections') or [] %}
+              {% if trips | count > 1 %}
+                {{ trips[1].departure }} -> {{ trips[1].arrival }}
+              {% else %}
+                No later departure
+              {% endif %}
+            secondary: >-
+              {% set trips = state_attr('sensor.cp_to_hubeneho', 'connections') or [] %}
+              {% if trips | count > 1 %}
+                {% set trip = trips[1] %}
+                {{ (as_timestamp(now()) + (trip.minutes_until | int(0)) * 60) | timestamp_custom('%A', true) }}
+                {% if trip.lines %}| {{ trip.lines | join(' + ') }}{% endif %}
+              {% else %}
+                Check the full timetable
+              {% endif %}
+            icon: mdi:bus-clock
+            icon_color: green
+            tap_action:
+              action: more-info
+            grid_options:
+              columns: 6
+              rows: 1
 
-          {% endfor %}
-          {% else %}
-          No departures found right now.
-          {% endif %}
+          - type: custom:mushroom-template-card
+            entity: sensor.cp_to_hubeneho
+            primary: >-
+              {% set trips = state_attr('sensor.cp_to_hubeneho', 'connections') or [] %}
+              {% if trips | count > 2 %}
+                {{ trips[2].departure }} -> {{ trips[2].arrival }}
+              {% else %}
+                No later departure
+              {% endif %}
+            secondary: >-
+              {% set trips = state_attr('sensor.cp_to_hubeneho', 'connections') or [] %}
+              {% if trips | count > 2 %}
+                {% set trip = trips[2] %}
+                {{ (as_timestamp(now()) + (trip.minutes_until | int(0)) * 60) | timestamp_custom('%A', true) }}
+                {% if trip.lines %}| {{ trip.lines | join(' + ') }}{% endif %}
+              {% else %}
+                Check the full timetable
+              {% endif %}
+            icon: mdi:bus-clock
+            icon_color: green
+            tap_action:
+              action: more-info
+            grid_options:
+              columns: 6
+              rows: 1
 
-      - type: markdown
-        title: Back to Hubeneho
-        content: >-
-          {% set trips = state_attr('sensor.cp_to_hubeneho', 'connections') or [] %}
-          {% if trips %}
-          {% for trip in trips[:5] %}
-          **{{ trip.departure }}** · in {{ trip.minutes_until }} min
-          arrive {{ trip.arrival }}
-
-          {% endfor %}
-          {% else %}
-          No departures found right now.
-          {% endif %}
-
-      - type: markdown
-        content: >-
-          [Open outbound search]({{ state_attr('sensor.cp_to_nova_doba', 'query_url') }})
-          ·
-          [Open return search]({{ state_attr('sensor.cp_to_hubeneho', 'query_url') }})
+          - type: markdown
+            content: >-
+              [**Open full timetable**]({{ state_attr('sensor.cp_to_hubeneho', 'query_url') }})
+            grid_options:
+              columns: 12
+              rows: auto
