@@ -28,7 +28,7 @@ cat > "$hook_path" <<'EOF'
 set -euo pipefail
 
 repo_root="$(git rev-parse --show-toplevel)"
-"$repo_root/skills/pii-precommit-check/scripts/scan_pii.sh" --staged
+"$repo_root/agents/skills/pii-precommit-check/scripts/scan_pii.sh" --staged
 
 local_hook_path="$repo_root/.git/hooks/pre-commit.local"
 if [[ -x "$local_hook_path" ]]; then

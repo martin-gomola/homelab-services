@@ -12,7 +12,7 @@ Run a fast local scan for staged files before commit, then redact or parameteriz
 1. Run the staged scan:
 
 ```bash
-skills/pii-precommit-check/scripts/scan_pii.sh --staged
+agents/skills/pii-precommit-check/scripts/scan_pii.sh --staged
 ```
 
 2. If findings are reported:
@@ -23,13 +23,13 @@ skills/pii-precommit-check/scripts/scan_pii.sh --staged
 3. For full repository checks:
 
 ```bash
-skills/pii-precommit-check/scripts/scan_pii.sh --all
+agents/skills/pii-precommit-check/scripts/scan_pii.sh --all
 ```
 
 4. Install automatic pre-commit protection:
 
 ```bash
-skills/pii-precommit-check/scripts/install_pre_commit_hook.sh
+agents/skills/pii-precommit-check/scripts/install_pre_commit_hook.sh
 ```
 
 The installer keeps existing hook logic by chaining `pre-commit.local` if present.
