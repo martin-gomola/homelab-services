@@ -2,7 +2,7 @@ name: audiobookshelf
 
 services:
   audiobookshelf:
-    image: ghcr.io/advplyr/audiobookshelf:${ABS_VERSION:-2.36.0}
+    image: ghcr.io/advplyr/audiobookshelf:${ABS_VERSION:-2.37.2}
     container_name: audiobookshelf
     env_file:
       - .env
@@ -33,7 +33,7 @@ services:
     stop_grace_period: 30s
 
   audiobookshelf-proxy:
-    image: nginx:1.27-alpine
+    image: nginx:1.29-alpine
     container_name: audiobookshelf-proxy
     depends_on:
       - audiobookshelf

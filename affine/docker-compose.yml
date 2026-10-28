@@ -2,7 +2,7 @@ name: affine
 
 services:
   affine_server:
-    image: ghcr.io/toeverything/affine:${AFFINE_REVISION:-0.27.0}
+    image: ghcr.io/toeverything/affine:${AFFINE_REVISION:-0.27.4}
     container_name: affine_server
     ports:
       - '${AFFINE_PORT:-3010}:3010'
@@ -47,7 +47,7 @@ services:
     stop_grace_period: 10s
 
   affine_migration:
-    image: ghcr.io/toeverything/affine:${AFFINE_REVISION:-0.27.0}
+    image: ghcr.io/toeverything/affine:${AFFINE_REVISION:-0.27.4}
     container_name: affine_migration_job
     volumes:
       - ${DATA_DIR:-/srv/docker}/affine/config:/root/.affine/config

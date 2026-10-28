@@ -25,7 +25,7 @@ Config is split across two files:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `AFFINE_PORT` | Web UI port | 3010 |
-| `AFFINE_REVISION` | Docker image version | 0.27.0 |
+| `AFFINE_REVISION` | Docker image version | 0.27.4 |
 | `DB_USERNAME` | PostgreSQL username | affine |
 | `DB_PASSWORD` | PostgreSQL password | - |
 | `DB_DATABASE` | PostgreSQL database | affinedb |
