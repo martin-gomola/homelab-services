@@ -17,7 +17,7 @@ Every stack follows the same conventions: env-driven config, isolated Compose pr
 | **Affine** | 3010 | docs.domain.com | Docs & knowledge base, WebSockets required |
 | **Mealie** | 9925 | mealie.domain.com | Recipe manager |
 | **Ntfy** | 8040 | ntfy.domain.com | Push notifications |
-| **Rallly** | 3030 | rallly.domain.com | Meeting poll scheduler |
+| **Rallly** | 3032 | poll.domain.com | Meeting poll scheduler |
 | **ChangeDetection** | 5050 | monitor.domain.com | Website change monitoring (Browserless on 3020) |
 | **Stirling PDF** | 8080 | pdf.domain.com | PDF toolkit (stateless) |
 | **Grocy** | 9283 | grocy.domain.com | Household management |

@@ -1,0 +1,19 @@
+metadata_dir = "/var/lib/garage/meta"
+data_dir = "/var/lib/garage/data"
+
+db_engine = "sqlite"
+
+replication_factor = 1
+
+rpc_bind_addr = "[::]:3901"
+# Overridden at runtime by GARAGE_RPC_SECRET env var from .env.
+# This placeholder exists so garage can start if the env var is missing.
+rpc_secret = "0000000000000000000000000000000000000000000000000000000000000000"
+
+[s3_api]
+api_bind_addr = "[::]:3900"
+s3_region = "garage"
+root_domain = ".s3.garage.localhost"
+
+[admin]
+api_bind_addr = "[::]:3903"
